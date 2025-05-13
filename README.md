@@ -27,6 +27,18 @@
 
 ---
 
+## 📱 Recursos
+
+- @expo/vector-icons - https://icons.expo.fyi/Index
+- expo-router [info](https://medium.com/@abdulaleemzafar515/the-benefits-of-using-expo-router-over-react-navigation-172f21772152)
+- react-native-safe-area-context
+- react-native-screens
+- expo-linking
+- expo-constants
+- expo-status-bar
+
+---
+
 ## 🛠️ Instalación y ejecución
 
 1. cd lostandfound
