@@ -29,4 +29,6 @@
 
 ## 🛠️ Instalación y ejecución
 
-1.
+1. cd lostandfound
+2. npm i
+3. npx expo start
