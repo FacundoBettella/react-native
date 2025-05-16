@@ -36,6 +36,8 @@
 - expo-linking
 - expo-constants
 - expo-status-bar
+- expo-location [video](https://www.youtube.com/watch?v=ltHbdeJg9eA)
+- react-native-maps [video](https://www.youtube.com/watch?v=4EUekljBzjc)
 
 ---
 
