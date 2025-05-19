@@ -21,16 +21,19 @@
 - React Native (Expo) SDK 53
 - Expo Location
 - MapView (react-native-maps)
+- Expo ImagePicker
 - React Navigation
 - Firebase (Auth, Firestore y Storage)
-- Expo ImagePicker
 
 ---
 
 ## 📱 Recursos
 
-- expo-location [video](https://www.youtube.com/watch?v=ltHbdeJg9eA)
-- react-native-maps
+- expo-location [video](https://www.youtube.com/watch?v=ltHbdeJg9eA) (para obtener coordenadas de la ubicación)
+- react-native-maps (para visualizar graficamente la ubicación)
+- expo-image-picker
+- expo-camera (para utilizar la camara)
+- expo-media-library (para guardar la foto en el dispositivo)
 - @expo/vector-icons - https://icons.expo.fyi/Index (ya viene por default en el SDK)
 - expo-router [info](https://medium.com/@abdulaleemzafar515/the-benefits-of-using-expo-router-over-react-navigation-172f21772152)
 - react-native-safe-area-context
