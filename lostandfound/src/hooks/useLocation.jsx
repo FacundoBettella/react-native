@@ -3,7 +3,7 @@ import {
   requestForegroundPermissionsAsync,
   reverseGeocodeAsync,
 } from "expo-location";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 const useLocation = () => {
   const [errorMsg, setErrorMsg] = useState("");
@@ -34,10 +34,6 @@ const useLocation = () => {
       setlocationDetails(response[0]);
     }
   };
-
-  //   useEffect(() => {
-  //     getUserLocation();
-  //   }, []);
 
   return { getUserLocation, latitude, longitude, errorMsg, locationDetails };
 };

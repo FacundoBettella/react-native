@@ -4,6 +4,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import useLocation from "../hooks/useLocation";
@@ -44,54 +45,56 @@ const LocationScreen = () => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.iconWrapper}>
-        <Feather name="map-pin" size={70} color="#a1a1a1" />
-      </View>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.iconWrapper}>
+          <Feather name="map-pin" size={70} color="#a1a1a1" />
+        </View>
 
-      <Text style={styles.title}>
-        {`Usar expo-location & \n`}
-        {`react-native-maps`}
-      </Text>
+        <Text style={styles.title}>
+          {`Usar expo-location & \n`}
+          {`react-native-maps`}
+        </Text>
 
-      <MapView ref={mapRef} style={styles.map} initialRegion={mapRegion}>
+        <MapView ref={mapRef} style={styles.map} initialRegion={mapRegion}>
+          {latitude && longitude && (
+            <Marker coordinate={{ latitude, longitude }} title="Tu ubicación" />
+          )}
+        </MapView>
+
+        <Text style={styles.desc}>
+          Cuando hagas click en el boton, se obtendra la ubicación de tu
+          dispositivo
+        </Text>
+
+        <TouchableOpacity
+          style={[styles.btn, hasFetched && styles.btnDisabled]}
+          onPress={handleGetLocation}
+          disabled={hasFetched}
+        >
+          <Text style={styles.btnText}>
+            {hasFetched ? "Ubicación obtenida" : "Obtener ubicación"}
+          </Text>
+        </TouchableOpacity>
+
         {latitude && longitude && (
-          <Marker coordinate={{ latitude, longitude }} title="Tu ubicación" />
+          <Text style={styles.locationText}>
+            Latitud: {latitude.toFixed(6)}
+            {"\n"}
+            Longitud: {longitude.toFixed(6)}
+          </Text>
         )}
-      </MapView>
 
-      <Text style={styles.desc}>
-        Cuando hagas click en el boton, se obtendra la ubicación de tu
-        dispositivo
-      </Text>
+        {locationDetails && (
+          <Text style={styles.locationText}>
+            {locationDetails.name && `Dirección: ${locationDetails.name}\n`}
+            {locationDetails.city && `Ciudad: ${locationDetails.city}\n`}
+            {locationDetails.region && `Región: ${locationDetails.region}\n`}
+            {locationDetails.country && `País: ${locationDetails.country}`}
+          </Text>
+        )}
 
-      <TouchableOpacity
-        style={[styles.btn, hasFetched && styles.btnDisabled]}
-        onPress={handleGetLocation}
-        disabled={hasFetched}
-      >
-        <Text style={styles.btnText}>
-          {hasFetched ? "Ubicación obtenida" : "Obtener ubicación"}
-        </Text>
-      </TouchableOpacity>
-
-      {latitude && longitude && (
-        <Text style={styles.locationText}>
-          Latitud: {latitude.toFixed(6)}
-          {"\n"}
-          Longitud: {longitude.toFixed(6)}
-        </Text>
-      )}
-
-      {locationDetails && (
-        <Text style={styles.locationText}>
-          {locationDetails.name && `Dirección: ${locationDetails.name}\n`}
-          {locationDetails.city && `Ciudad: ${locationDetails.city}\n`}
-          {locationDetails.region && `Región: ${locationDetails.region}\n`}
-          {locationDetails.country && `País: ${locationDetails.country}`}
-        </Text>
-      )}
-
-      {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+        {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
+      </ScrollView>
     </View>
   );
 };
@@ -105,6 +108,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     paddingHorizontal: 25,
+  },
+  scrollContainer: {
+    alignItems: "center",
+    paddingHorizontal: 25,
+    paddingBottom: 50,
   },
   iconWrapper: {
     backgroundColor: "#f2f2f2",
