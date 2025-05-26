@@ -1,100 +1,185 @@
 import {
+  ActivityIndicator,
   Dimensions,
+  Image,
+  Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
-  ScrollView,
+  TouchableOpacity,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
 import useLocation from "../hooks/useLocation";
 import { useEffect, useRef, useState } from "react";
-import MapView, { Marker } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+
+const mockedCoords = [
+  {
+    latitude: -34.612945,
+    longitude: -58.550872,
+    name: "Luna",
+    type: "Perro",
+    status: "perdido",
+    image: { uri: "https://placedog.net/400?id=1" },
+  },
+  {
+    latitude: -34.600273,
+    longitude: -58.562103,
+    name: "Michi",
+    type: "Gato",
+    status: "encontrado",
+    image: { uri: "https://placedog.net/400?id=2" },
+  },
+  {
+    latitude: -34.620198,
+    longitude: -58.572347,
+    name: "Estrella",
+    type: "Perro",
+    status: "perdido",
+    image: { uri: "https://placedog.net/400?id=3" },
+  },
+  {
+    latitude: -34.604389,
+    longitude: -58.578914,
+    name: "Sol",
+    type: "Tortuga",
+    status: "perdido",
+    image: { uri: "https://placedog.net/400?id=4" },
+  },
+  {
+    latitude: -34.617845,
+    longitude: -58.556731,
+    name: "Mermelada",
+    type: "Perro",
+    status: "encontrado",
+    image: { uri: "https://placedog.net/400?id=5" },
+  },
+];
 
 const LocationScreen = () => {
-  const { getUserLocation, latitude, longitude, errorMsg, locationDetails } =
-    useLocation();
-  const [hasFetched, setHasFetched] = useState(false);
-  const [mapRegion] = useState({
-    latitude: -34.603722, // Ej: Buenos Aires
-    longitude: -58.381592,
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
-  });
+  const { getUserLocation, latitude, longitude } = useLocation();
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCoord, setSelectedCoord] = useState(null);
   const mapRef = useRef(null);
 
   useEffect(() => {
-    if (latitude && longitude && mapRef.current) {
-      mapRef.current.animateToRegion(
-        {
-          latitude,
-          longitude,
-          latitudeDelta: 0.005,
-          longitudeDelta: 0.005,
-        },
-        1000 // duración en milisegundos
-      );
-    }
-  }, [latitude, longitude]);
+    const fetchLocation = async () => {
+      const success = await getUserLocation();
+      if (success && mapRef.current) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: 0,
+            longitude: 0,
+            latitudeDelta: 100,
+            longitudeDelta: 100,
+          },
+          500
+        );
 
-  const handleGetLocation = () => {
-    if (hasFetched) return;
-    getUserLocation();
-    setHasFetched(true);
-  };
+        setTimeout(() => {
+          mapRef.current.animateToRegion(
+            {
+              latitude: parseFloat(latitude),
+              longitude: parseFloat(longitude),
+              latitudeDelta: 0.03,
+              longitudeDelta: 0.03,
+            },
+            1500
+          );
+          setIsLoading(false);
+        }, 600);
+      } else {
+        setIsLoading(false);
+      }
+    };
+    fetchLocation();
+  }, [latitude, longitude]);
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        <View style={styles.iconWrapper}>
-          <Feather name="map-pin" size={70} color="#a1a1a1" />
+      {isLoading ? (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={{ marginTop: 10, fontSize: 16, color: "#555" }}>
+            Obteniendo tu ubicación...
+          </Text>
         </View>
+      ) : (
+        <>
+          <MapView
+            provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
+            ref={mapRef}
+            style={styles.map}
+            initialRegion={{
+              latitude: 0,
+              longitude: 0,
+              latitudeDelta: 100,
+              longitudeDelta: 100,
+            }}
+          >
+            {latitude &&
+              longitude &&
+              mockedCoords.map((coord, index) => (
+                <Marker
+                  key={index}
+                  coordinate={{
+                    latitude: coord.latitude,
+                    longitude: coord.longitude,
+                  }}
+                  onPress={() => setSelectedCoord(coord)}
+                >
+                  <View
+                    style={[
+                      styles.markerWrapper,
+                      {
+                        backgroundColor:
+                          coord.status === "perdido" ? "#007FFF" : "#A040FB",
+                      },
+                    ]}
+                  >
+                    <Text style={styles.markerIcon}>
+                      {coord.type === "Perro"
+                        ? "🐶"
+                        : coord.type === "Gato"
+                        ? "🐱"
+                        : "🐢"}
+                    </Text>
+                  </View>
+                </Marker>
+              ))}
+          </MapView>
 
-        <Text style={styles.title}>
-          {`Usar expo-location & \n`}
-          {`react-native-maps`}
-        </Text>
-
-        <MapView ref={mapRef} style={styles.map} initialRegion={mapRegion}>
-          {latitude && longitude && (
-            <Marker coordinate={{ latitude, longitude }} title="Tu ubicación" />
+          {selectedCoord && (
+            <View style={styles.customCallout}>
+              <Image source={selectedCoord.image} style={styles.calloutImage} />
+              <View style={styles.calloutTextContainer}>
+                <Text style={styles.calloutName}>{selectedCoord.name}</Text>
+                <Text style={styles.calloutType}>{selectedCoord.type}</Text>
+                <Text
+                  style={[
+                    styles.calloutStatus,
+                    {
+                      color:
+                        selectedCoord.status === "perdido"
+                          ? "#007FFF"
+                          : "#A040FB",
+                    },
+                  ]}
+                >
+                  {selectedCoord.status === "perdido"
+                    ? "Perdido"
+                    : "Encontrado"}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setSelectedCoord(null)}
+                style={styles.closeButton}
+              >
+                <Text style={{ fontSize: 18, color: "#aaa" }}>✕</Text>
+              </TouchableOpacity>
+            </View>
           )}
-        </MapView>
-
-        <Text style={styles.desc}>
-          Cuando hagas click en el boton, se obtendra la ubicación de tu
-          dispositivo
-        </Text>
-
-        <TouchableOpacity
-          style={[styles.btn, hasFetched && styles.btnDisabled]}
-          onPress={handleGetLocation}
-          disabled={hasFetched}
-        >
-          <Text style={styles.btnText}>
-            {hasFetched ? "Ubicación obtenida" : "Obtener ubicación"}
-          </Text>
-        </TouchableOpacity>
-
-        {latitude && longitude && (
-          <Text style={styles.locationText}>
-            Latitud: {latitude.toFixed(6)}
-            {"\n"}
-            Longitud: {longitude.toFixed(6)}
-          </Text>
-        )}
-
-        {locationDetails && (
-          <Text style={styles.locationText}>
-            {locationDetails.name && `Dirección: ${locationDetails.name}\n`}
-            {locationDetails.city && `Ciudad: ${locationDetails.city}\n`}
-            {locationDetails.region && `Región: ${locationDetails.region}\n`}
-            {locationDetails.country && `País: ${locationDetails.country}`}
-          </Text>
-        )}
-
-        {errorMsg && <Text style={styles.errorText}>{errorMsg}</Text>}
-      </ScrollView>
+        </>
+      )}
     </View>
   );
 };
@@ -104,73 +189,73 @@ export default LocationScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "white",
+  },
+  map: {
+    width: Dimensions.get("window").width,
+    height: Dimensions.get("window").height,
+  },
+  loaderContainer: {
+    flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 25,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
-  scrollContainer: {
-    alignItems: "center",
-    paddingHorizontal: 25,
-    paddingBottom: 50,
-  },
-  iconWrapper: {
-    backgroundColor: "#f2f2f2",
-    padding: 40,
-    borderRadius: "100%",
-    borderWidth: 1,
-    borderColor: "#e6e6e6",
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 20,
-    color: "#1a1a1a",
-    marginBottom: 10,
-  },
-  desc: {
-    textAlign: "center",
-    marginBottom: 10,
-  },
-  btn: {
-    backgroundColor: "blue",
-    padding: 15,
-    borderRadius: "10%",
-  },
-  btnText: {
-    fontSize: 20,
-    color: "white",
-  },
-  locationText: {
-    marginTop: 20,
-    textAlign: "center",
-    fontSize: 16,
-    color: "#333",
-  },
-  errorText: {
-    marginTop: 20,
-    textAlign: "center",
-    fontSize: 16,
-    color: "red",
-  },
-  btnDisabled: {
-    backgroundColor: "gray",
-  },
-  locationText: {
-    marginTop: 20,
-    textAlign: "center",
-    fontSize: 16,
-    color: "#333",
-  },
-  // map: {
-  //   marginTop: 20,
-  //   width: Dimensions.get("window").width - 50,
-  //   height: 200,
-  //   borderRadius: 10,
-  // },
-  map: {
-    width: Dimensions.get("window").width - 50,
-    height: 300,
+  customCallout: {
+    position: "absolute",
+    bottom: 80,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    backgroundColor: "white",
     borderRadius: 10,
-    marginBottom: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: "#ccc",
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    alignItems: "center",
+  },
+  closeButton: {
+    position: "absolute",
+    top: 5,
+    right: 8,
+    padding: 4,
+  },
+  calloutImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 10,
+  },
+  calloutTextContainer: {
+    justifyContent: "center",
+    flex: 1,
+  },
+  calloutName: {
+    fontWeight: "bold",
+    fontSize: 14,
+    color: "#333",
+  },
+  calloutType: {
+    fontSize: 12,
+    color: "#555",
+  },
+  calloutStatus: {
+    marginTop: 4,
+    fontWeight: "600",
+  },
+  markerWrapper: {
+    padding: 6,
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "#fff",
+  },
+  markerIcon: {
+    fontSize: 20,
   },
 });
