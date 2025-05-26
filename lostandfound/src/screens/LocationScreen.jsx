@@ -11,6 +11,7 @@ import {
 import useLocation from "../hooks/useLocation";
 import { useEffect, useRef, useState } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import { useNavigation } from "@react-navigation/native";
 
 const mockedCoords = [
   {
@@ -60,6 +61,7 @@ const LocationScreen = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCoord, setSelectedCoord] = useState(null);
   const mapRef = useRef(null);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -148,7 +150,7 @@ const LocationScreen = () => {
               ))}
           </MapView>
 
-          {selectedCoord && (
+          {/* {selectedCoord && (
             <View style={styles.customCallout}>
               <Image source={selectedCoord.image} style={styles.calloutImage} />
               <View style={styles.calloutTextContainer}>
@@ -177,6 +179,47 @@ const LocationScreen = () => {
                 <Text style={{ fontSize: 18, color: "#aaa" }}>✕</Text>
               </TouchableOpacity>
             </View>
+          )} */}
+          {selectedCoord && (
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.customCallout}
+              onPress={() => {
+                navigation.navigate("PetDetail", { pet: selectedCoord });
+                setSelectedCoord(null);
+              }}
+            >
+              <Image source={selectedCoord.image} style={styles.calloutImage} />
+              <View style={styles.calloutTextContainer}>
+                <Text style={styles.calloutName}>{selectedCoord.name}</Text>
+                <Text style={styles.calloutType}>{selectedCoord.type}</Text>
+                <Text
+                  style={[
+                    styles.calloutStatus,
+                    {
+                      color:
+                        selectedCoord.status === "perdido"
+                          ? "#007FFF"
+                          : "#A040FB",
+                    },
+                  ]}
+                >
+                  {selectedCoord.status === "perdido"
+                    ? "Perdido"
+                    : "Encontrado"}
+                </Text>
+              </View>
+
+              <TouchableOpacity
+                onPress={(e) => {
+                  e.stopPropagation(); // <- esto evita que el evento se propague al TouchableOpacity exterior
+                  setSelectedCoord(null);
+                }}
+                style={styles.closeButton}
+              >
+                <Text style={{ fontSize: 18, color: "#aaa" }}>✕</Text>
+              </TouchableOpacity>
+            </TouchableOpacity>
           )}
         </>
       )}
