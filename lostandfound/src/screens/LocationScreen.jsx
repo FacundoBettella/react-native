@@ -7,6 +7,7 @@ import {
   Text,
   View,
   TouchableOpacity,
+  Animated,
 } from "react-native";
 import useLocation from "../hooks/useLocation";
 import { useEffect, useRef, useState } from "react";
@@ -106,60 +107,6 @@ const mockedCoords = [
   },
 ];
 
-// const mockedCoords = [
-//   {
-//     latitude: -34.612945,
-//     longitude: -58.550872,
-//     name: "Luna",
-//     type: "Perro",
-//     status: "perdido",
-//     image: { uri: "https://placedog.net/400?id=1" },
-//     phone: "+541112345678",
-//     description:
-//       "Luna es una perrita mestiza de tamaño mediano, muy amigable y juguetona. Se perdió el 15 de mayo en la zona de Villa Luro. Tiene un pelaje marrón claro con manchas blancas en el pecho. Llevaba un collar rojo con chapita. Es sociable y responde a su nombre. Puede tener miedo a los ruidos fuertes. Necesita medicación diaria. Si la ves, por favor no la persigas: llamá o mandá un mensaje. La familia está desesperada por encontrarla. ¡Gracias!",
-//   },
-//   {
-//     latitude: -34.600273,
-//     longitude: -58.562103,
-//     name: "Michi",
-//     type: "Gato",
-//     status: "encontrado",
-//     image: { uri: "https://placedog.net/400?id=2" },
-//     phone: "+54 11 8765 4321",
-//     description: "Gato blanco con manchas negras. Ojos verdes.",
-//   },
-//   {
-//     latitude: -34.620198,
-//     longitude: -58.572347,
-//     name: "Estrella",
-//     type: "Perro",
-//     status: "perdido",
-//     image: { uri: "https://placedog.net/400?id=3" },
-//     phone: "+54 11 8765 4321",
-//     description: "Gato blanco con manchas negras. Ojos verdes.",
-//   },
-//   {
-//     latitude: -34.604389,
-//     longitude: -58.578914,
-//     name: "Sol",
-//     type: "Tortuga",
-//     status: "perdido",
-//     image: { uri: "https://placedog.net/400?id=4" },
-//     phone: "+54 11 8765 4321",
-//     description: "Gato blanco con manchas negras. Ojos verdes.",
-//   },
-//   {
-//     latitude: -34.617845,
-//     longitude: -58.556731,
-//     name: "Mermelada",
-//     type: "Perro",
-//     status: "encontrado",
-//     image: { uri: "https://placedog.net/400?id=5" },
-//     phone: "+54 11 8765 4321",
-//     description: "Gato blanco con manchas negras. Ojos verdes.",
-//   },
-// ];
-
 const LocationScreen = () => {
   const { getUserLocation, latitude, longitude } = useLocation();
   const [isLoading, setIsLoading] = useState(true);
@@ -199,6 +146,28 @@ const LocationScreen = () => {
     };
     fetchLocation();
   }, [latitude, longitude]);
+
+  const calloutAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    if (selectedCoord) {
+      Animated.timing(calloutAnim, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
+    }
+  }, [selectedCoord]);
+
+  const closeCallout = () => {
+    Animated.timing(calloutAnim, {
+      toValue: 0,
+      duration: 100,
+      useNativeDriver: true,
+    }).start(() => {
+      setSelectedCoord(null);
+    });
+  };
 
   return (
     <View style={styles.container}>
@@ -253,77 +222,70 @@ const LocationScreen = () => {
                 </Marker>
               ))}
           </MapView>
-
-          {/* {selectedCoord && (
-            <View style={styles.customCallout}>
-              <Image source={selectedCoord.image} style={styles.calloutImage} />
-              <View style={styles.calloutTextContainer}>
-                <Text style={styles.calloutName}>{selectedCoord.name}</Text>
-                <Text style={styles.calloutType}>{selectedCoord.type}</Text>
-                <Text
-                  style={[
-                    styles.calloutStatus,
-                    {
-                      color:
-                        selectedCoord.status === "perdido"
-                          ? "#007FFF"
-                          : "#A040FB",
-                    },
-                  ]}
-                >
-                  {selectedCoord.status === "perdido"
-                    ? "Perdido"
-                    : "Encontrado"}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setSelectedCoord(null)}
-                style={styles.closeButton}
-              >
-                <Text style={{ fontSize: 18, color: "#aaa" }}>✕</Text>
-              </TouchableOpacity>
-            </View>
-          )} */}
           {selectedCoord && (
-            <TouchableOpacity
-              activeOpacity={0.9}
-              style={styles.customCallout}
-              onPress={() => {
-                navigation.navigate("PetDetail", { pet: selectedCoord });
-                setSelectedCoord(null);
-              }}
-            >
-              <Image source={selectedCoord.image} style={styles.calloutImage} />
-              <View style={styles.calloutTextContainer}>
-                <Text style={styles.calloutName}>{selectedCoord.name}</Text>
-                <Text style={styles.calloutType}>{selectedCoord.type}</Text>
-                <Text
-                  style={[
-                    styles.calloutStatus,
+            <Animated.View
+              style={[
+                styles.customCallout,
+                {
+                  backgroundColor:
+                    selectedCoord.status === "perdido" ? "#E6F0FF" : "#F0E6FF",
+                  borderLeftColor:
+                    selectedCoord.status === "perdido" ? "#007FFF" : "#A040FB",
+                  opacity: calloutAnim,
+                  transform: [
                     {
-                      color:
-                        selectedCoord.status === "perdido"
-                          ? "#007FFF"
-                          : "#A040FB",
+                      translateY: calloutAnim.interpolate({
+                        inputRange: [0, 1],
+                        outputRange: [40, 0],
+                      }),
                     },
-                  ]}
-                >
-                  {selectedCoord.status === "perdido"
-                    ? "Perdido"
-                    : "Encontrado"}
-                </Text>
-              </View>
+                  ],
+                },
+              ]}
+            >
+              <TouchableOpacity
+                activeOpacity={0.9}
+                style={{ flexDirection: "row", flex: 1 }}
+                onPress={() => {
+                  navigation.navigate("PetDetail", { pet: selectedCoord });
+                  // setSelectedCoord(null); // navegación inmediata
+                }}
+              >
+                <Image
+                  source={selectedCoord.image}
+                  style={styles.calloutImage}
+                />
+                <View style={styles.calloutTextContainer}>
+                  <Text style={styles.calloutName}>{selectedCoord.name}</Text>
+                  <Text style={styles.calloutType}>{selectedCoord.type}</Text>
+                  <Text
+                    style={[
+                      styles.calloutStatus,
+                      {
+                        color:
+                          selectedCoord.status === "perdido"
+                            ? "#007FFF"
+                            : "#A040FB",
+                      },
+                    ]}
+                  >
+                    {selectedCoord.status === "perdido"
+                      ? "Perdido"
+                      : "Encontrado"}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={(e) => {
-                  e.stopPropagation(); // <- esto evita que el evento se propague al TouchableOpacity exterior
-                  setSelectedCoord(null);
+                  e.stopPropagation(); // evita propagación
+                  closeCallout(); // cierre animado
                 }}
                 style={styles.closeButton}
               >
-                <Text style={{ fontSize: 18, color: "#aaa" }}>✕</Text>
+                <Text style={styles.closeButtonText}>✕</Text>
               </TouchableOpacity>
-            </TouchableOpacity>
+            </Animated.View>
           )}
         </>
       )}
@@ -347,53 +309,53 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
-  customCallout: {
-    position: "absolute",
-    bottom: 80,
-    left: 20,
-    right: 20,
-    flexDirection: "row",
-    backgroundColor: "white",
-    borderRadius: 10,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    elevation: 6,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    alignItems: "center",
-  },
-  closeButton: {
-    position: "absolute",
-    top: 5,
-    right: 8,
-    padding: 4,
-  },
-  calloutImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-    marginRight: 10,
-  },
-  calloutTextContainer: {
-    justifyContent: "center",
-    flex: 1,
-  },
-  calloutName: {
-    fontWeight: "bold",
-    fontSize: 14,
-    color: "#333",
-  },
-  calloutType: {
-    fontSize: 12,
-    color: "#555",
-  },
-  calloutStatus: {
-    marginTop: 4,
-    fontWeight: "600",
-  },
+  // customCallout: {
+  //   position: "absolute",
+  //   bottom: 80,
+  //   left: 20,
+  //   right: 20,
+  //   flexDirection: "row",
+  //   backgroundColor: "white",
+  //   borderRadius: 10,
+  //   padding: 10,
+  //   borderWidth: 1,
+  //   borderColor: "#ccc",
+  //   elevation: 6,
+  //   shadowColor: "#000",
+  //   shadowOffset: { width: 0, height: 2 },
+  //   shadowOpacity: 0.3,
+  //   shadowRadius: 4,
+  //   alignItems: "center",
+  // },
+  // closeButton: {
+  //   position: "absolute",
+  //   top: 5,
+  //   right: 8,
+  //   padding: 4,
+  // },
+  // calloutImage: {
+  //   width: 60,
+  //   height: 60,
+  //   borderRadius: 8,
+  //   marginRight: 10,
+  // },
+  // calloutTextContainer: {
+  //   justifyContent: "center",
+  //   flex: 1,
+  // },
+  // calloutName: {
+  //   fontWeight: "bold",
+  //   fontSize: 14,
+  //   color: "#333",
+  // },
+  // calloutType: {
+  //   fontSize: 12,
+  //   color: "#555",
+  // },
+  // calloutStatus: {
+  //   marginTop: 4,
+  //   fontWeight: "600",
+  // },
   markerWrapper: {
     padding: 6,
     borderRadius: 30,
@@ -404,5 +366,68 @@ const styles = StyleSheet.create({
   },
   markerIcon: {
     fontSize: 20,
+  },
+
+  //////////////
+
+  customCallout: {
+    position: "absolute",
+    bottom: 80,
+    left: 20,
+    right: 20,
+    flexDirection: "row",
+    borderRadius: 12,
+    padding: 12,
+    borderLeftWidth: 6,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    alignItems: "center",
+  },
+
+  calloutImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 10,
+    marginRight: 12,
+    backgroundColor: "#ddd",
+  },
+
+  calloutTextContainer: {
+    justifyContent: "center",
+    flex: 1,
+  },
+
+  calloutName: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#222",
+    marginBottom: 2,
+  },
+
+  calloutType: {
+    fontSize: 13,
+    color: "#555",
+  },
+
+  calloutStatus: {
+    marginTop: 4,
+    fontWeight: "600",
+    fontSize: 13,
+  },
+
+  closeButton: {
+    position: "absolute",
+    top: 8,
+    right: 10,
+    zIndex: 10,
+    padding: 6,
+  },
+
+  closeButtonText: {
+    fontSize: 18,
+    color: "#888",
   },
 });
