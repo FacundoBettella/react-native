@@ -11,7 +11,9 @@ import LocationScreen from "./src/screens/LocationScreen";
 import GalleryScreen from "./src/screens/GalleryScreen";
 import PetDetailScreen from "./src/screens/PetDetailScreen";
 import LoginScreen from "./src/screens/LoginScreen";
-import ProfileScreen from "./src/screens/ProfileScreen"; // Crear esta screen
+import ProfileScreen from "./src/screens/ProfileScreen";
+import UserProfileForm from "./src/screens/UserProfileFormScreen";
+import AddPetScreen from "./src/screens/AddPetScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -27,6 +29,39 @@ function HomeScreen() {
   );
 }
 
+// STACK INTERNO DE PERFIL
+function ProfileStackNavigator() {
+  return (
+    <Stack.Navigator>
+      <Stack.Screen
+        name="ProfileScreen"
+        component={ProfileScreen}
+        options={{
+          headerShown: false,
+          title: "Mi Perfil",
+        }}
+      />
+      <Stack.Screen
+        name="EditProfile"
+        component={UserProfileForm}
+        options={{
+          headerShown: false,
+          title: "Editar Perfil",
+        }}
+      />
+      <Stack.Screen
+        name="AddPet"
+        component={AddPetScreen}
+        options={{
+          headerShown: false,
+          title: "Agregar Mascota",
+        }}
+      />
+    </Stack.Navigator>
+  );
+}
+
+// DRAWER PRINCIPAL
 function DrawerNavigator() {
   const { user } = useContext(AuthContext);
 
@@ -59,8 +94,8 @@ function DrawerNavigator() {
       />
       {user ? (
         <Drawer.Screen
-          name="Mi Perfil"
-          component={ProfileScreen}
+          name="Perfil"
+          component={ProfileStackNavigator}
           options={{
             drawerIcon: ({ color, size }) => (
               <Ionicons name="person-outline" size={size} color={color} />
@@ -91,6 +126,7 @@ function DrawerNavigator() {
   );
 }
 
+// APP ROOT
 export default function App() {
   return (
     <AuthProvider>
