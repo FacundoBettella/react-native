@@ -8,12 +8,12 @@ import { AuthContext, AuthProvider } from "./AuthProvider";
 
 // Screens
 import LocationScreen from "./src/screens/LocationScreen";
-import GalleryScreen from "./src/screens/GalleryScreen";
 import PetDetailScreen from "./src/screens/PetDetailScreen";
 import LoginScreen from "./src/screens/LoginScreen";
 import ProfileScreen from "./src/screens/ProfileScreen";
 import UserProfileForm from "./src/screens/UserProfileFormScreen";
 import AddPetScreen from "./src/screens/AddPetScreen";
+import MyPetsScreen from "./src/screens/MyPetsScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -47,14 +47,6 @@ function ProfileStackNavigator() {
         options={{
           headerShown: false,
           title: "Editar Perfil",
-        }}
-      />
-      <Stack.Screen
-        name="AddPet"
-        component={AddPetScreen}
-        options={{
-          headerShown: false,
-          title: "Agregar Mascota",
         }}
       />
     </Stack.Navigator>
@@ -92,6 +84,17 @@ function DrawerNavigator() {
           ),
         }}
       />
+      {user && (
+        <Drawer.Screen
+          name="Mis Mascotas"
+          component={MyPetsScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="paw-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
       {user ? (
         <Drawer.Screen
           name="Perfil"
@@ -113,15 +116,6 @@ function DrawerNavigator() {
           }}
         />
       )}
-      <Drawer.Screen
-        name="Galería"
-        component={GalleryScreen}
-        options={{
-          drawerIcon: ({ color, size }) => (
-            <Ionicons name="images-outline" size={size} color={color} />
-          ),
-        }}
-      />
     </Drawer.Navigator>
   );
 }
@@ -139,6 +133,14 @@ export default function App() {
             options={{
               headerShown: true,
               title: "Detalle de mascota",
+            }}
+          />
+          <Stack.Screen
+            name="AddPet"
+            component={AddPetScreen}
+            options={{
+              headerShown: true,
+              title: "Agregar o editar mascota",
             }}
           />
         </Stack.Navigator>

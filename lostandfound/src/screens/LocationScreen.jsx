@@ -8,111 +8,59 @@ import {
   View,
   TouchableOpacity,
   Animated,
+  ScrollView,
 } from "react-native";
 import useLocation from "../hooks/useLocation";
 import { useEffect, useRef, useState } from "react";
 import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
 import { useNavigation } from "@react-navigation/native";
-
-const mockedCoords = [
-  {
-    latitude: -34.612945,
-    longitude: -58.550872,
-    name: "Luna",
-    type: "Perro",
-    breed: "Mestiza",
-    gender: "Hembra",
-    age: "Adulta",
-    date: "15/05/2025",
-    address: "Av. Rivadavia 9200, Villa Luro, CABA",
-    retained: false,
-    status: "perdido",
-    owner: "Laura Pérez",
-    phone: "+541112345678",
-    image: { uri: "https://placedog.net/400?id=1" },
-    description:
-      "Luna es una perrita mestiza de tamaño mediano, muy amigable y juguetona. Se perdió el 15 de mayo en la zona de Villa Luro. Tiene un pelaje marrón claro con manchas blancas en el pecho. Llevaba un collar rojo con chapita. Es sociable y responde a su nombre. Puede tener miedo a los ruidos fuertes. Necesita medicación diaria. Si la ves, por favor no la persigas: llamá o mandá un mensaje. La familia está desesperada por encontrarla. ¡Gracias!",
-  },
-  {
-    latitude: -34.600273,
-    longitude: -58.562103,
-    name: "Michi",
-    type: "Gato",
-    breed: "Doméstico",
-    gender: "Macho",
-    age: "Adulto",
-    date: "20/05/2025",
-    address: "Calle Alberdi 3000, Mataderos, CABA",
-    retained: true,
-    status: "encontrado",
-    owner: "María Gómez",
-    phone: "+541187654321",
-    image: { uri: "https://placedog.net/400?id=2" },
-    description:
-      "Gato blanco con manchas negras, ojos verdes. Apareció en la puerta de casa. Está bien alimentado y parece acostumbrado a los humanos. Lo tenemos en casa esperando a que alguien lo reconozca.",
-  },
-  {
-    latitude: -34.620198,
-    longitude: -58.572347,
-    name: "Estrella",
-    type: "Perro",
-    breed: "Labrador",
-    gender: "Hembra",
-    age: "Cachorra",
-    date: "10/05/2025",
-    address: "Av. Directorio 4400, Parque Avellaneda, CABA",
-    retained: false,
-    status: "perdido",
-    owner: "Martín Ruiz",
-    phone: "+541187654321",
-    image: { uri: "https://placedog.net/400?id=3" },
-    description:
-      "Estrella es una cachorra labradora color dorado, muy dócil y juguetona. Se escapó del patio. No tenía collar. Agradecemos cualquier información.",
-  },
-  {
-    latitude: -34.604389,
-    longitude: -58.578914,
-    name: "Sol",
-    type: "Tortuga",
-    breed: "Tortuga de tierra",
-    gender: "Desconocido",
-    age: "Adulta",
-    date: "18/05/2025",
-    address: "Pasaje Las Flores 1500, Liniers, CABA",
-    retained: false,
-    status: "perdido",
-    owner: "Familia Molina",
-    phone: "+541187654321",
-    image: { uri: "https://placedog.net/400?id=4" },
-    description:
-      "Tortuga de tierra, tamaño mediano. Se perdió del jardín. Tiene una marca en el caparazón que la distingue. No suele alejarse mucho. Si la ves, avisá por favor.",
-  },
-  {
-    latitude: -34.617845,
-    longitude: -58.556731,
-    name: "Mermelada",
-    type: "Perro",
-    breed: "Caniche",
-    gender: "Macho",
-    age: "Adulto",
-    date: "22/05/2025",
-    address: "Ramón Falcón 5000, Floresta, CABA",
-    retained: true,
-    status: "encontrado",
-    owner: "Pedro López",
-    phone: "+541187654321",
-    image: { uri: "https://placedog.net/400?id=5" },
-    description:
-      "Pequeño caniche encontrado en la plaza. Estaba asustado y tenía el pelo muy prolijo. Lo tengo en casa por si alguien lo reconoce.",
-  },
-];
+import { collection, getDocs, query, where } from "firebase/firestore";
+import { auth, db } from "../config/fb";
+import { MaterialIcons } from "@expo/vector-icons";
 
 const LocationScreen = () => {
   const { getUserLocation, latitude, longitude } = useLocation();
+  const currentUser = auth.currentUser;
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCoord, setSelectedCoord] = useState(null);
+  const [pets, setPets] = useState([]);
+  const [filterStatus, setFilterStatus] = useState("todos");
+  const [onlyMyPets, setOnlyMyPets] = useState(false);
   const mapRef = useRef(null);
   const navigation = useNavigation();
+  const calloutAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    const fetchPets = async () => {
+      try {
+        let petsQuery = collection(db, "pets");
+        const conditions = [];
+
+        if (filterStatus !== "todos") {
+          conditions.push(where("status", "==", filterStatus));
+        }
+
+        if (onlyMyPets && currentUser?.uid) {
+          conditions.push(where("userId", "==", currentUser.uid));
+        }
+
+        if (conditions.length > 0) {
+          petsQuery = query(petsQuery, ...conditions);
+        }
+
+        const snapshot = await getDocs(petsQuery);
+        const petsData = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPets(petsData);
+      } catch (error) {
+        console.error("Error al obtener mascotas:", error);
+      }
+    };
+
+    fetchPets();
+  }, [filterStatus, onlyMyPets, currentUser]);
 
   useEffect(() => {
     const fetchLocation = async () => {
@@ -133,21 +81,19 @@ const LocationScreen = () => {
             {
               latitude: parseFloat(latitude),
               longitude: parseFloat(longitude),
-              latitudeDelta: 0.03,
-              longitudeDelta: 0.03,
+              latitudeDelta: 0.04,
+              longitudeDelta: 0.04,
             },
             1500
           );
           setIsLoading(false);
-        }, 600);
+        }, 1600);
       } else {
         setIsLoading(false);
       }
     };
     fetchLocation();
   }, [latitude, longitude]);
-
-  const calloutAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (selectedCoord) {
@@ -167,6 +113,87 @@ const LocationScreen = () => {
     }).start(() => {
       setSelectedCoord(null);
     });
+  };
+
+  const FilterButton = ({ label, value, icon }) => {
+    const isActive = filterStatus === value;
+
+    const getColor = () => {
+      switch (value) {
+        case "perdido":
+          return "#007FFF"; // Azul
+        case "encontrado":
+          return "#A040FB"; // Violeta
+        case "todos":
+        default:
+          return "#007AFF"; // Celeste
+      }
+    };
+
+    const color = getColor();
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.chip,
+          {
+            backgroundColor: isActive ? color : "#fff",
+            borderColor: color,
+          },
+        ]}
+        onPress={() => setFilterStatus(value)}
+      >
+        <MaterialIcons
+          name={icon}
+          size={18}
+          color={isActive ? "#fff" : color}
+          style={{ marginRight: 6 }}
+        />
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: isActive ? "#fff" : color,
+          }}
+        >
+          {label}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const MyPetsButton = () => {
+    if (!currentUser) return null;
+
+    const color = "#FF9500";
+    return (
+      <TouchableOpacity
+        style={[
+          styles.chip,
+          {
+            backgroundColor: onlyMyPets ? color : "#fff",
+            borderColor: color,
+          },
+        ]}
+        onPress={() => setOnlyMyPets(!onlyMyPets)}
+      >
+        <MaterialIcons
+          name="person"
+          size={18}
+          color={onlyMyPets ? "#fff" : color}
+          style={{ marginRight: 6 }}
+        />
+        <Text
+          style={{
+            fontSize: 14,
+            fontWeight: "600",
+            color: onlyMyPets ? "#fff" : color,
+          }}
+        >
+          Mis mascotas
+        </Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -193,9 +220,9 @@ const LocationScreen = () => {
           >
             {latitude &&
               longitude &&
-              mockedCoords.map((coord, index) => (
+              pets.map((coord) => (
                 <Marker
-                  key={index}
+                  key={coord.id}
                   coordinate={{
                     latitude: coord.latitude,
                     longitude: coord.longitude,
@@ -222,6 +249,20 @@ const LocationScreen = () => {
                 </Marker>
               ))}
           </MapView>
+
+          <View style={styles.filterContainer}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              <FilterButton label="Todos" value="todos" icon="pets" />
+              <FilterButton label="Perdidos" value="perdido" icon="search" />
+              <FilterButton
+                label="Encontrados"
+                value="encontrado"
+                icon="check"
+              />
+              <MyPetsButton />
+            </ScrollView>
+          </View>
+
           {selectedCoord && (
             <Animated.View
               style={[
@@ -248,11 +289,10 @@ const LocationScreen = () => {
                 style={{ flexDirection: "row", flex: 1 }}
                 onPress={() => {
                   navigation.navigate("PetDetail", { pet: selectedCoord });
-                  // setSelectedCoord(null); // navegación inmediata
                 }}
               >
                 <Image
-                  source={selectedCoord.image}
+                  source={{ uri: selectedCoord.image?.uri }}
                   style={styles.calloutImage}
                 />
                 <View style={styles.calloutTextContainer}>
@@ -278,8 +318,8 @@ const LocationScreen = () => {
 
               <TouchableOpacity
                 onPress={(e) => {
-                  e.stopPropagation(); // evita propagación
-                  closeCallout(); // cierre animado
+                  e.stopPropagation();
+                  closeCallout();
                 }}
                 style={styles.closeButton}
               >
@@ -296,9 +336,7 @@ const LocationScreen = () => {
 export default LocationScreen;
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
+  container: { flex: 1 },
   map: {
     width: Dimensions.get("window").width,
     height: Dimensions.get("window").height,
@@ -307,22 +345,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
   },
   markerWrapper: {
     padding: 6,
     borderRadius: 30,
-    justifyContent: "center",
-    alignItems: "center",
     borderWidth: 2,
     borderColor: "#fff",
   },
   markerIcon: {
     fontSize: 20,
   },
-
-  //////////////
-
   customCallout: {
     position: "absolute",
     bottom: 80,
@@ -339,48 +371,32 @@ const styles = StyleSheet.create({
     shadowRadius: 6,
     alignItems: "center",
   },
-
   calloutImage: {
     width: 70,
     height: 70,
     borderRadius: 10,
     marginRight: 12,
-    backgroundColor: "#ddd",
   },
-
-  calloutTextContainer: {
-    justifyContent: "center",
-    flex: 1,
-  },
-
-  calloutName: {
-    fontWeight: "bold",
-    fontSize: 16,
-    color: "#222",
-    marginBottom: 2,
-  },
-
-  calloutType: {
-    fontSize: 13,
-    color: "#555",
-  },
-
-  calloutStatus: {
-    marginTop: 4,
-    fontWeight: "600",
-    fontSize: 13,
-  },
-
-  closeButton: {
+  calloutTextContainer: { justifyContent: "center", flex: 1 },
+  calloutName: { fontWeight: "bold", fontSize: 16 },
+  calloutType: { fontSize: 13, color: "#555" },
+  calloutStatus: { marginTop: 4, fontWeight: "600", fontSize: 13 },
+  closeButton: { position: "absolute", top: 8, right: 10, padding: 6 },
+  closeButtonText: { fontSize: 18, color: "#888" },
+  filterContainer: {
     position: "absolute",
-    top: 8,
+    top: 50,
+    left: 10,
     right: 10,
-    zIndex: 10,
-    padding: 6,
+    flexDirection: "row",
   },
-
-  closeButtonText: {
-    fontSize: 18,
-    color: "#888",
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1.5,
+    marginRight: 8,
   },
 });

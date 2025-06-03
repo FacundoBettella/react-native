@@ -52,10 +52,10 @@ export default function UserProfileForm() {
   }, []);
 
   const pickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: [ImagePicker.MediaType.Images],
-      base64: true,
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ["images"],
       quality: 0.5,
+      base64: true,
     });
 
     if (!result.canceled) {

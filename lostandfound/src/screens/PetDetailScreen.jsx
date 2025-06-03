@@ -9,9 +9,14 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../config/fb";
+import { useNavigation } from "@react-navigation/native";
 
 const PetDetailScreen = ({ route }) => {
+  const navigation = useNavigation();
   const { pet } = route.params;
+  const currentUser = auth.currentUser;
+  const isOwner = currentUser && pet.userId === currentUser.uid;
 
   const openWhatsApp = () => {
     const message = `Hola, vi tu publicación sobre ${pet.name}. ¿Sigue disponible la información?`;
@@ -116,6 +121,18 @@ const PetDetailScreen = ({ route }) => {
             </MapView>
           </TouchableOpacity>
         </View>
+
+        {isOwner && (
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() =>
+              navigation.navigate("AddPet", { pet, isEditing: true })
+            }
+          >
+            <Ionicons name="create-outline" size={20} color="#fff" />
+            <Text style={styles.editButtonText}>Editar publicación</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -193,5 +210,21 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  editButton: {
+    backgroundColor: "#6C63FF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    marginLeft: 8,
+    fontWeight: "600",
   },
 });

@@ -21,14 +21,25 @@ const ProfileScreen = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const uid = auth.currentUser.uid;
-        const docRef = doc(db, "users", uid);
+        const currentUser = auth.currentUser;
+        if (!currentUser) return;
+
+        const baseData = {
+          name: "",
+          surname: "",
+          phone: "",
+          address: "",
+          photoBase64: "",
+          email: currentUser.email || "",
+        };
+
+        const docRef = doc(db, "users", currentUser.uid);
         const docSnap = await getDoc(docRef);
 
         if (docSnap.exists()) {
-          setUserData(docSnap.data());
+          setUserData({ ...baseData, ...docSnap.data() });
         } else {
-          console.log("No user profile found.");
+          setUserData(baseData);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -48,28 +59,29 @@ const ProfileScreen = () => {
     );
   }
 
-  if (!userData) {
-    return (
-      <View style={styles.center}>
-        <Text>No se encontró información de perfil.</Text>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      {userData.photoBase64 && (
+      {userData.photoBase64 ? (
         <Image
           source={{ uri: userData.photoBase64 }}
           style={styles.profileImage}
         />
+      ) : (
+        <Image
+          source={require("../../assets/default-avatar.jpg")}
+          style={styles.profileImage}
+        />
       )}
       <Text style={styles.text}>
-        Nombre: {userData.name} {userData.surname}
+        Nombre: {userData.name || "(sin nombre)"} {userData.surname || ""}
       </Text>
       <Text style={styles.text}>Email: {userData.email}</Text>
-      <Text style={styles.text}>Teléfono: {userData.phone}</Text>
-      <Text style={styles.text}>Dirección: {userData.address}</Text>
+      <Text style={styles.text}>
+        Teléfono: {userData.phone || "(sin teléfono)"}
+      </Text>
+      <Text style={styles.text}>
+        Dirección: {userData.address || "(sin dirección)"}
+      </Text>
 
       <View style={styles.buttonContainer}>
         <Button
@@ -103,6 +115,7 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 60,
     marginBottom: 16,
+    backgroundColor: "#ddd",
   },
   text: {
     fontSize: 16,
