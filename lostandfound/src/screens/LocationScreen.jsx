@@ -260,7 +260,7 @@ const LocationScreen = () => {
                     <View
                       style={[
                         styles.markerWrapper,
-                        { backgroundColor: statusColor },
+                        { borderColor: statusColor },
                       ]}
                     >
                       <Text style={styles.markerIcon}>{icon}</Text>
