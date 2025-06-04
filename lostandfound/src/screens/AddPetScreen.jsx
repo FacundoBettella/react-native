@@ -1,186 +1,3 @@
-// import { useEffect, useState } from "react";
-// import {
-//   View,
-//   TextInput,
-//   Button,
-//   StyleSheet,
-//   ScrollView,
-//   Alert,
-//   Image,
-// } from "react-native";
-// import {
-//   collection,
-//   addDoc,
-//   getDoc,
-//   doc,
-//   serverTimestamp,
-// } from "firebase/firestore";
-// import * as ImagePicker from "expo-image-picker";
-// import { auth, db } from "../config/fb";
-
-// export default function AddPetScreen({ navigation }) {
-//   const [profile, setProfile] = useState(null);
-//   const [name, setName] = useState("");
-//   const [type, setType] = useState("");
-//   const [breed, setBreed] = useState("");
-//   const [gender, setGender] = useState("");
-//   const [age, setAge] = useState("");
-//   const [address, setAddress] = useState("");
-//   const [status, setStatus] = useState("perdido");
-//   const [retained, setRetained] = useState(false);
-//   const [description, setDescription] = useState("");
-//   const [image, setImage] = useState(null);
-//   const [location, setLocation] = useState({ latitude: null, longitude: null });
-
-//   useEffect(() => {
-//     const fetchProfile = async () => {
-//       const user = auth.currentUser;
-//       if (!user) return;
-//       const profileRef = doc(db, "users", user.uid);
-//       const profileSnap = await getDoc(profileRef);
-//       if (profileSnap.exists()) {
-//         setProfile(profileSnap.data());
-//       }
-//     };
-//     fetchProfile();
-//   }, []);
-
-//   const pickImage = async () => {
-//     const result = await ImagePicker.launchImageLibraryAsync({
-//       mediaTypes: ["images"],
-//       quality: 0.5,
-//       base64: true,
-//     });
-//     if (!result.canceled) {
-//       setImage(result.assets[0]);
-//     }
-//   };
-
-//   const handleSave = async () => {
-//     if (!profile) {
-//       Alert.alert("Error", "No se pudo obtener la información del usuario.");
-//       return;
-//     }
-
-//     if (
-//       !name ||
-//       !type ||
-//       !breed ||
-//       !gender ||
-//       !age ||
-//       !address ||
-//       !description ||
-//       !image
-//     ) {
-//       Alert.alert(
-//         "Faltan datos",
-//         "Por favor completá todos los campos requeridos."
-//       );
-//       return;
-//     }
-
-//     try {
-//       const petData = {
-//         latitude: location.latitude || 0,
-//         longitude: location.longitude || 0,
-//         name,
-//         type,
-//         breed,
-//         gender,
-//         age,
-//         date: new Date().toLocaleDateString("es-AR"),
-//         address,
-//         retained,
-//         status,
-//         owner: `${profile.name} ${profile.surname}`,
-//         phone: profile.phone,
-//         image: { uri: image.uri },
-//         description,
-//         userId: auth.currentUser.uid,
-//         createdAt: serverTimestamp(),
-//       };
-
-//       await addDoc(collection(db, "pets"), petData);
-
-//       Alert.alert("Éxito", "Mascota registrada correctamente.");
-//       navigation.goBack();
-//     } catch (error) {
-//       console.error("Error al guardar la mascota:", error);
-//       Alert.alert("Error", "No se pudo guardar la mascota.");
-//     }
-//   };
-
-//   return (
-//     <ScrollView contentContainerStyle={styles.container}>
-//       <TextInput
-//         placeholder="Nombre de la mascota"
-//         value={name}
-//         onChangeText={setName}
-//         style={styles.input}
-//       />
-//       <TextInput
-//         placeholder="Tipo (Perro, Gato...)"
-//         value={type}
-//         onChangeText={setType}
-//         style={styles.input}
-//       />
-//       <TextInput
-//         placeholder="Raza"
-//         value={breed}
-//         onChangeText={setBreed}
-//         style={styles.input}
-//       />
-//       <TextInput
-//         placeholder="Género"
-//         value={gender}
-//         onChangeText={setGender}
-//         style={styles.input}
-//       />
-//       <TextInput
-//         placeholder="Edad"
-//         value={age}
-//         onChangeText={setAge}
-//         style={styles.input}
-//       />
-//       <TextInput
-//         placeholder="Dirección"
-//         value={address}
-//         onChangeText={setAddress}
-//         style={styles.input}
-//       />
-//       <TextInput
-//         placeholder="Descripción"
-//         value={description}
-//         onChangeText={setDescription}
-//         style={[styles.input, { height: 80 }]}
-//         multiline
-//       />
-//       <Button title="Seleccionar imagen" onPress={pickImage} />
-//       {image && <Image source={{ uri: image.uri }} style={styles.image} />}
-//       <Button title="Guardar mascota" onPress={handleSave} />
-//     </ScrollView>
-//   );
-// }
-
-// const styles = StyleSheet.create({
-//   container: {
-//     padding: 20,
-//   },
-//   input: {
-//     borderWidth: 1,
-//     borderColor: "#ccc",
-//     padding: 12,
-//     borderRadius: 8,
-//     marginBottom: 12,
-//   },
-//   image: {
-//     width: "100%",
-//     height: 200,
-//     marginTop: 12,
-//     marginBottom: 12,
-//   },
-// });
-
 import { useEffect, useState } from "react";
 import {
   View,
@@ -190,6 +7,8 @@ import {
   ScrollView,
   Alert,
   Image,
+  TouchableOpacity,
+  Text,
 } from "react-native";
 import {
   collection,
@@ -201,6 +20,49 @@ import {
 } from "firebase/firestore";
 import * as ImagePicker from "expo-image-picker";
 import { auth, db } from "../config/fb";
+
+const STATUS_COLORS = {
+  perdido: {
+    background: "#E6F0FF",
+    text: "#0D47A1",
+    border: "#E6F0FF",
+  },
+  encontrado: {
+    background: "#F0E6FF",
+    text: "#4A148C",
+    border: "#F0E6FF",
+  },
+  resuelto: {
+    background: "#E6FFE6",
+    text: "#2E7D32",
+    border: "#E6FFE6",
+  },
+};
+
+const SelectChips = ({ options, value, onChange }) => (
+  <View style={styles.statusContainer}>
+    {options.map((opt) => {
+      const isSelected = value === opt;
+      return (
+        <TouchableOpacity
+          key={opt}
+          onPress={() => onChange(opt)}
+          style={[
+            styles.chip,
+            {
+              backgroundColor: isSelected ? "#DDEEFF" : "#f0f0f0",
+              borderColor: isSelected ? "#AACCEE" : "#ccc",
+            },
+          ]}
+        >
+          <Text style={{ color: isSelected ? "#003366" : "#555" }}>
+            {opt.charAt(0).toUpperCase() + opt.slice(1)}
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+);
 
 export default function AddPetScreen({ navigation, route }) {
   const isEditing = route?.params?.isEditing;
@@ -220,7 +82,6 @@ export default function AddPetScreen({ navigation, route }) {
   const [image, setImage] = useState(null);
   const [location, setLocation] = useState({ latitude: null, longitude: null });
 
-  // Cargar perfil y datos si es edición
   useEffect(() => {
     const fetchData = async () => {
       const user = auth.currentUser;
@@ -269,15 +130,20 @@ export default function AddPetScreen({ navigation, route }) {
       return;
     }
 
+    const requiredFields = [
+      name,
+      type,
+      breed,
+      gender,
+      age,
+      address,
+      description,
+      image,
+    ];
     if (
-      !name ||
-      !type ||
-      !breed ||
-      !gender ||
-      !age ||
-      !address ||
-      !description ||
-      !image
+      requiredFields.some(
+        (f) => !f || (typeof f === "string" && f.trim() === "")
+      )
     ) {
       Alert.alert(
         "Faltan datos",
@@ -326,43 +192,80 @@ export default function AddPetScreen({ navigation, route }) {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      overScrollMode="never"
+    >
+      <Text style={styles.label}>Estado</Text>
+      <View style={styles.statusContainer}>
+        {["perdido", "encontrado", "resuelto"].map((item) => {
+          const isSelected = status === item;
+          const colors = STATUS_COLORS[item];
+
+          return (
+            <TouchableOpacity
+              key={item}
+              onPress={() => setStatus(item)}
+              style={[
+                styles.chip,
+                {
+                  backgroundColor: isSelected ? colors.background : "#f0f0f0",
+                  borderColor: isSelected ? colors.border : "#ccc",
+                },
+              ]}
+            >
+              <Text style={{ color: isSelected ? colors.text : "#555" }}>
+                {item.charAt(0).toUpperCase() + item.slice(1)}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+
+      <Text style={styles.label}>Nombre Mascota</Text>
       <TextInput
         placeholder="Nombre de la mascota"
         value={name}
         onChangeText={setName}
         style={styles.input}
       />
-      <TextInput
-        placeholder="Tipo (Perro, Gato...)"
+      <Text style={styles.label}>Tipo</Text>
+      <SelectChips
+        options={["Perro", "Gato", "Mascota"]}
         value={type}
-        onChangeText={setType}
-        style={styles.input}
+        onChange={setType}
       />
+      <Text style={styles.label}>Raza</Text>
       <TextInput
         placeholder="Raza"
         value={breed}
         onChangeText={setBreed}
         style={styles.input}
       />
-      <TextInput
-        placeholder="Género"
+
+      <Text style={styles.label}>Género</Text>
+      <SelectChips
+        options={["Macho", "Hembra", "Desconocido"]}
         value={gender}
-        onChangeText={setGender}
-        style={styles.input}
+        onChange={setGender}
       />
-      <TextInput
-        placeholder="Edad"
+
+      <Text style={styles.label}>Edad</Text>
+      <SelectChips
+        options={["Cachorro", "Adulto", "Desconocido"]}
         value={age}
-        onChangeText={setAge}
-        style={styles.input}
+        onChange={setAge}
       />
+      <Text style={styles.label}>Dirección</Text>
       <TextInput
         placeholder="Dirección"
         value={address}
         onChangeText={setAddress}
         style={styles.input}
       />
+      <Text style={styles.label}>Descripción</Text>
       <TextInput
         placeholder="Descripción"
         value={description}
@@ -370,6 +273,7 @@ export default function AddPetScreen({ navigation, route }) {
         style={[styles.input, { height: 80 }]}
         multiline
       />
+
       <Button title="Seleccionar imagen" onPress={pickImage} />
       {image && <Image source={{ uri: image.uri }} style={styles.image} />}
       <Button
@@ -391,10 +295,29 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 12,
   },
+  label: {
+    fontWeight: "bold",
+    marginBottom: 4,
+    marginTop: 8,
+  },
   image: {
     width: "100%",
     height: 200,
     marginTop: 12,
     marginBottom: 12,
+  },
+  statusContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    marginBottom: 16,
+  },
+  chip: {
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderWidth: 1,
+    fontSize: 14,
+    marginRight: 8,
+    marginBottom: 8,
   },
 });

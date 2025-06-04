@@ -12,10 +12,33 @@ import { useNavigation } from "@react-navigation/native";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { auth, db } from "../config/fb";
 
+// Abstracción de colores por estado
+const statusColors = {
+  perdido: {
+    background: "#E6F0FF",
+    border: "#007FFF",
+    text: "#007FFF",
+    label: "Perdido",
+  },
+  encontrado: {
+    background: "#F0E6FF",
+    border: "#A040FB",
+    text: "#A040FB",
+    label: "Encontrado",
+  },
+  resuelto: {
+    background: "#E6FFE6",
+    border: "#32A852",
+    text: "#32A852",
+    label: "Resuelto",
+  },
+};
+
 const MyPetsScreen = () => {
   const navigation = useNavigation();
   const [pets, setPets] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [canAddPet, setCanAddPet] = useState(false);
   const currentUser = auth.currentUser;
 
   useEffect(() => {
@@ -33,6 +56,12 @@ const MyPetsScreen = () => {
           ...doc.data(),
         }));
         setPets(myPets);
+
+        // Verificar cuántas mascotas activas tiene el usuario
+        const activePets = myPets.filter(
+          (pet) => pet.status === "perdido" || pet.status === "encontrado"
+        );
+        setCanAddPet(activePets.length < 2);
       } catch (error) {
         console.error("Error al cargar tus mascotas:", error);
       } finally {
@@ -44,15 +73,21 @@ const MyPetsScreen = () => {
   }, [currentUser]);
 
   const renderItem = ({ item }) => {
-    const bgColor = item.status === "perdido" ? "#E6F0FF" : "#F0E6FF";
-    const borderColor = item.status === "perdido" ? "#007FFF" : "#A040FB";
-    const textColor = item.status === "perdido" ? "#007FFF" : "#A040FB";
+    const colors = statusColors[item.status] || {
+      background: "#EEE",
+      border: "#888",
+      text: "#333",
+      label: item.status,
+    };
 
     return (
       <TouchableOpacity
         style={[
           styles.card,
-          { backgroundColor: bgColor, borderLeftColor: borderColor },
+          {
+            backgroundColor: colors.background,
+            borderLeftColor: colors.border,
+          },
         ]}
         onPress={() => navigation.navigate("PetDetail", { pet: item })}
       >
@@ -60,8 +95,8 @@ const MyPetsScreen = () => {
         <View style={styles.info}>
           <Text style={styles.name}>{item.name}</Text>
           <Text style={styles.type}>{item.type}</Text>
-          <Text style={[styles.status, { color: textColor }]}>
-            {item.status === "perdido" ? "Perdido" : "Encontrado"}
+          <Text style={[styles.status, { color: colors.text }]}>
+            {colors.label}
           </Text>
         </View>
       </TouchableOpacity>
@@ -82,9 +117,24 @@ const MyPetsScreen = () => {
   if (pets.length === 0) {
     return (
       <View style={styles.loader}>
-        <Text style={{ fontSize: 16, color: "#777" }}>
+        <Text style={{ fontSize: 16, color: "#777", marginBottom: 16 }}>
           No has publicado mascotas aún.
         </Text>
+        <TouchableOpacity
+          style={[styles.addButton, !canAddPet && styles.disabledButton]}
+          onPress={() => navigation.navigate("AddPet")}
+          disabled={!canAddPet}
+        >
+          <Text style={styles.addButtonText}>
+            {canAddPet ? "Publicar mascota" : "Límite alcanzado"}
+          </Text>
+        </TouchableOpacity>
+        {!canAddPet && (
+          <Text style={styles.infoText}>
+            Solo puedes tener 2 mascotas activas a la vez (perdidas o
+            encontradas).
+          </Text>
+        )}
       </View>
     );
   }
@@ -97,6 +147,23 @@ const MyPetsScreen = () => {
         renderItem={renderItem}
         contentContainerStyle={{ padding: 16 }}
       />
+      <View style={{ padding: 16, alignItems: "center" }}>
+        <TouchableOpacity
+          style={[styles.addButton, !canAddPet && styles.disabledButton]}
+          onPress={() => navigation.navigate("AddPet")}
+          disabled={!canAddPet}
+        >
+          <Text style={styles.addButtonText}>
+            {canAddPet ? "Publicar nueva mascota" : "Límite alcanzado"}
+          </Text>
+        </TouchableOpacity>
+        {!canAddPet && (
+          <Text style={styles.infoText}>
+            Solo puedes tener 2 mascotas activas a la vez (perdidas o
+            encontradas).
+          </Text>
+        )}
+      </View>
     </View>
   );
 };
@@ -144,5 +211,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  addButton: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    alignItems: "center",
+  },
+  disabledButton: {
+    backgroundColor: "#ccc",
+  },
+  addButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  infoText: {
+    marginTop: 12,
+    marginBottom: 32,
+    fontSize: 14,
+    color: "#D9534F",
+    textAlign: "center",
+    paddingHorizontal: 16,
+    backgroundColor: "#FCEAEA",
+    borderRadius: 8,
+    paddingVertical: 8,
+    fontWeight: "500",
   },
 });

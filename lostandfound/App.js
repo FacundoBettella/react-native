@@ -2,7 +2,6 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { Text, View } from "react-native";
 import { useContext } from "react";
 import { AuthContext, AuthProvider } from "./AuthProvider";
 
@@ -14,20 +13,10 @@ import ProfileScreen from "./src/screens/ProfileScreen";
 import UserProfileForm from "./src/screens/UserProfileFormScreen";
 import AddPetScreen from "./src/screens/AddPetScreen";
 import MyPetsScreen from "./src/screens/MyPetsScreen";
+import HomeScreen from "./src/screens/HomeScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
-
-function HomeScreen() {
-  return (
-    <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-      <Ionicons name="home-outline" size={60} color="#2f95dc" />
-      <Text style={{ fontSize: 24, marginTop: 10 }}>
-        Bienvenido a Lost & Found
-      </Text>
-    </View>
-  );
-}
 
 // STACK INTERNO DE PERFIL
 function ProfileStackNavigator() {
@@ -143,6 +132,7 @@ export default function App() {
               title: "Agregar o editar mascota",
             }}
           />
+          <Stack.Screen name="Login" component={LoginScreen} />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>

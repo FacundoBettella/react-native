@@ -18,6 +18,42 @@ import { collection, getDocs, query, where } from "firebase/firestore";
 import { auth, db } from "../config/fb";
 import { MaterialIcons } from "@expo/vector-icons";
 
+const STATUS_COLORS = {
+  perdido: {
+    main: "#007FFF",
+    background: "#E6F0FF",
+    border: "#007FFF",
+    text: "#007FFF",
+  },
+  encontrado: {
+    main: "#A040FB",
+    background: "#F0E6FF",
+    border: "#A040FB",
+    text: "#A040FB",
+  },
+  resuelto: {
+    main: "#00C851",
+    background: "#E6F9EF",
+    border: "#00C851",
+    text: "#00C851",
+  },
+  todos: {
+    main: "#007AFF",
+  },
+  misMascotas: {
+    main: "#FF9500",
+  },
+};
+
+const PET_TYPE_ICONS = {
+  Perro: "🐶",
+  Gato: "🐱",
+  Ave: "🕊️",
+  Conejo: "🐰",
+  Tortuga: "🐢",
+  Otro: "🐾",
+};
+
 const LocationScreen = () => {
   const { getUserLocation, latitude, longitude } = useLocation();
   const currentUser = auth.currentUser;
@@ -117,20 +153,7 @@ const LocationScreen = () => {
 
   const FilterButton = ({ label, value, icon }) => {
     const isActive = filterStatus === value;
-
-    const getColor = () => {
-      switch (value) {
-        case "perdido":
-          return "#007FFF"; // Azul
-        case "encontrado":
-          return "#A040FB"; // Violeta
-        case "todos":
-        default:
-          return "#007AFF"; // Celeste
-      }
-    };
-
-    const color = getColor();
+    const color = STATUS_COLORS[value]?.main || "#007AFF";
 
     return (
       <TouchableOpacity
@@ -164,8 +187,8 @@ const LocationScreen = () => {
 
   const MyPetsButton = () => {
     if (!currentUser) return null;
+    const color = STATUS_COLORS.misMascotas.main;
 
-    const color = "#FF9500";
     return (
       <TouchableOpacity
         style={[
@@ -220,34 +243,31 @@ const LocationScreen = () => {
           >
             {latitude &&
               longitude &&
-              pets.map((coord) => (
-                <Marker
-                  key={coord.id}
-                  coordinate={{
-                    latitude: coord.latitude,
-                    longitude: coord.longitude,
-                  }}
-                  onPress={() => setSelectedCoord(coord)}
-                >
-                  <View
-                    style={[
-                      styles.markerWrapper,
-                      {
-                        backgroundColor:
-                          coord.status === "perdido" ? "#007FFF" : "#A040FB",
-                      },
-                    ]}
+              pets.map((coord) => {
+                const statusColor =
+                  STATUS_COLORS[coord.status]?.main || "#007AFF";
+                const icon =
+                  PET_TYPE_ICONS[coord.type] || PET_TYPE_ICONS["Otro"];
+                return (
+                  <Marker
+                    key={coord.id}
+                    coordinate={{
+                      latitude: coord.latitude,
+                      longitude: coord.longitude,
+                    }}
+                    onPress={() => setSelectedCoord(coord)}
                   >
-                    <Text style={styles.markerIcon}>
-                      {coord.type === "Perro"
-                        ? "🐶"
-                        : coord.type === "Gato"
-                        ? "🐱"
-                        : "🐢"}
-                    </Text>
-                  </View>
-                </Marker>
-              ))}
+                    <View
+                      style={[
+                        styles.markerWrapper,
+                        { backgroundColor: statusColor },
+                      ]}
+                    >
+                      <Text style={styles.markerIcon}>{icon}</Text>
+                    </View>
+                  </Marker>
+                );
+              })}
           </MapView>
 
           <View style={styles.filterContainer}>
@@ -259,6 +279,12 @@ const LocationScreen = () => {
                 value="encontrado"
                 icon="check"
               />
+              <FilterButton
+                label="Resueltos"
+                value="resuelto"
+                icon="check-circle"
+              />
+
               <MyPetsButton />
             </ScrollView>
           </View>
@@ -269,9 +295,10 @@ const LocationScreen = () => {
                 styles.customCallout,
                 {
                   backgroundColor:
-                    selectedCoord.status === "perdido" ? "#E6F0FF" : "#F0E6FF",
+                    STATUS_COLORS[selectedCoord.status]?.background ||
+                    "#E6F0FF",
                   borderLeftColor:
-                    selectedCoord.status === "perdido" ? "#007FFF" : "#A040FB",
+                    STATUS_COLORS[selectedCoord.status]?.border || "#007FFF",
                   opacity: calloutAnim,
                   transform: [
                     {
@@ -303,15 +330,13 @@ const LocationScreen = () => {
                       styles.calloutStatus,
                       {
                         color:
-                          selectedCoord.status === "perdido"
-                            ? "#007FFF"
-                            : "#A040FB",
+                          STATUS_COLORS[selectedCoord.status]?.text ||
+                          "#007FFF",
                       },
                     ]}
                   >
-                    {selectedCoord.status === "perdido"
-                      ? "Perdido"
-                      : "Encontrado"}
+                    {selectedCoord.status.charAt(0).toUpperCase() +
+                      selectedCoord.status.slice(1)}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -347,13 +372,17 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   markerWrapper: {
-    padding: 6,
-    borderRadius: 30,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#ccc",
     borderWidth: 2,
     borderColor: "#fff",
+    alignItems: "center",
+    justifyContent: "center",
   },
   markerIcon: {
-    fontSize: 20,
+    fontSize: 22,
   },
   customCallout: {
     position: "absolute",
