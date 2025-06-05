@@ -120,7 +120,8 @@ export default function AddPetScreen({ navigation, route }) {
       base64: true,
     });
     if (!result.canceled) {
-      setImage(result.assets[0]);
+      const selectedAsset = result.assets[0];
+      setImage(`data:image/jpeg;base64,${selectedAsset.base64}`);
     }
   };
 
@@ -275,7 +276,7 @@ export default function AddPetScreen({ navigation, route }) {
       />
 
       <Button title="Seleccionar imagen" onPress={pickImage} />
-      {image && <Image source={{ uri: image.uri }} style={styles.image} />}
+      {image && <Image source={{ uri: image }} style={styles.image} />}
       <Button
         title={isEditing ? "Actualizar mascota" : "Guardar mascota"}
         onPress={handleSave}
