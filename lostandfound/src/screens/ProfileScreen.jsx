@@ -1,10 +1,10 @@
 import {
   View,
   Text,
-  Button,
   Image,
   StyleSheet,
   ActivityIndicator,
+  TouchableOpacity,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { auth, db } from "../config/fb";
@@ -84,15 +84,28 @@ const ProfileScreen = () => {
       </Text>
 
       <View style={styles.buttonContainer}>
-        <Button
-          title="Editar perfil"
+        <TouchableOpacity
+          style={[styles.customButton, { backgroundColor: "#8DA290" }]}
           onPress={() => navigation.navigate("EditProfile")}
-        />
-        <Button title="Cerrar sesión" color="red" onPress={logout} />
-        <Button
-          title="Agregar Mascota"
-          onPress={() => navigation.navigate("AddPet")}
-        />
+        >
+          <Text style={styles.buttonText}>Editar perfil</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.customButton, { backgroundColor: "#8DA290" }]}
+          onPress={() => navigation.navigate("Subscription")}
+        >
+          <Text style={styles.buttonText}>Suscripción</Text>
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.logoutContainer}>
+        <TouchableOpacity
+          style={[styles.customButton, { backgroundColor: "#ff4d4d" }]}
+          onPress={logout}
+        >
+          <Text style={styles.buttonText}>Cerrar sesión</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -103,7 +116,7 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 24,
     alignItems: "center",
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#fbfaf4",
   },
   center: {
     flex: 1,
@@ -123,7 +136,21 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 24,
-    gap: 10,
+    gap: 12,
+    width: "100%",
+  },
+  customButton: {
+    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  logoutContainer: {
+    marginTop: "auto",
     width: "100%",
   },
 });

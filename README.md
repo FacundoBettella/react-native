@@ -44,6 +44,15 @@
 
 ---
 
+## 🎨 Paleta visual 
+- Fondo general: #FCF1D8 // #fbfaf4
+- Header: #DEE2D9
+- Botones / elementos activos: #F2CBBB // #d8693f
+- Texto: #000000 
+- Seleccionado: #8DA290
+
+---
+
 ## 🛠️ Instalación y ejecución
 
 1. cd lostandfound

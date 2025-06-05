@@ -38,7 +38,7 @@ const STATUS_COLORS = {
     text: "#00C851",
   },
   todos: {
-    main: "#007AFF",
+    main: "#d8693f",
   },
   misMascotas: {
     main: "#FF9500",
@@ -164,7 +164,10 @@ const LocationScreen = () => {
             borderColor: color,
           },
         ]}
-        onPress={() => setFilterStatus(value)}
+        onPress={() => {
+          setFilterStatus(value);
+          setOnlyMyPets(false); 
+        }}
       >
         <MaterialIcons
           name={icon}
@@ -198,7 +201,12 @@ const LocationScreen = () => {
             borderColor: color,
           },
         ]}
-        onPress={() => setOnlyMyPets(!onlyMyPets)}
+        onPress={() => {
+          setOnlyMyPets(!onlyMyPets);
+          if (!onlyMyPets) {
+            setFilterStatus("todos");
+          }
+        }}
       >
         <MaterialIcons
           name="person"
