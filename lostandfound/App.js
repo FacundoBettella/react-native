@@ -21,7 +21,13 @@ const Stack = createNativeStackNavigator();
 // STACK INTERNO DE PERFIL
 function ProfileStackNavigator() {
   return (
-    <Stack.Navigator>
+    <Stack.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: "#DEE2D9" }, 
+        headerTintColor: "#000000", 
+        contentStyle: { backgroundColor: "#FCF1D8" }, 
+      }}
+    >
       <Stack.Screen
         name="ProfileScreen"
         component={ProfileScreen}
@@ -49,10 +55,14 @@ function DrawerNavigator() {
   return (
     <Drawer.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: "#2f95dc" },
-        headerTintColor: "#fff",
-        drawerActiveTintColor: "#2f95dc",
-        drawerLabelStyle: { fontSize: 16 },
+        headerStyle: { backgroundColor: "#DEE2D9" }, 
+        headerTintColor: "#000000", 
+        drawerActiveTintColor: "#8DA290", 
+        drawerInactiveTintColor: "#000000", 
+        drawerStyle: {
+          backgroundColor: "#FCF1D8", 
+        },
+        drawerLabelStyle: { fontSize: 16, color: "#000000" },
       }}
     >
       <Drawer.Screen
@@ -114,7 +124,12 @@ export default function App() {
   return (
     <AuthProvider>
       <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Navigator
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: "#FCF1D8" }, 
+          }}
+        >
           <Stack.Screen name="Main" component={DrawerNavigator} />
           <Stack.Screen
             name="PetDetail"
@@ -122,6 +137,9 @@ export default function App() {
             options={{
               headerShown: true,
               title: "Detalle de mascota",
+              headerStyle: { backgroundColor: "#DEE2D9" }, 
+              headerTintColor: "#000000", 
+              contentStyle: { backgroundColor: "#FCF1D8" }, 
             }}
           />
           <Stack.Screen
@@ -130,9 +148,22 @@ export default function App() {
             options={{
               headerShown: true,
               title: "Agregar o editar mascota",
+              headerStyle: { backgroundColor: "#DEE2D9" }, 
+              headerTintColor: "#000000", 
+              contentStyle: { backgroundColor: "#FCF1D8" }, 
             }}
           />
-          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{
+              headerShown: true,
+              title: "Iniciar sesión",
+              headerStyle: { backgroundColor: "#DEE2D9" }, 
+              headerTintColor: "#000000", 
+              contentStyle: { backgroundColor: "#FCF1D8" }, 
+            }}
+          />
         </Stack.Navigator>
       </NavigationContainer>
     </AuthProvider>
