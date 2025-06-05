@@ -30,7 +30,7 @@ const LoginScreen = () => {
         password
       );
       setUser(userCredential.user);
-      navigation.navigate("Main"); // o a otra screen si deseas
+      navigation.navigate("Main");
     } catch (error) {
       alert("Sign in failed: " + error.message);
     }

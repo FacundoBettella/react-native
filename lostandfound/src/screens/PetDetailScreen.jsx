@@ -6,14 +6,58 @@ import {
   Linking,
   TouchableOpacity,
   ScrollView,
+  Alert,
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
+import { auth } from "../config/fb";
+import { useNavigation } from "@react-navigation/native";
+
+const statusColors = {
+  perdido: {
+    background: "#F0F8FF",
+    badge: "#E0F0FF",
+    textColor: "#003366",
+    label: "Perdido",
+  },
+  encontrado: {
+    background: "#F8F0FF",
+    badge: "#F2E6FF",
+    textColor: "#4B0082",
+    label: "Encontrado",
+  },
+  resuelto: {
+    background: "#F2FFF0",
+    badge: "#E0FFE6",
+    textColor: "#006600",
+    label: "Resuelto",
+  },
+};
 
 const PetDetailScreen = ({ route }) => {
+  const navigation = useNavigation();
   const { pet } = route.params;
+  const currentUser = auth.currentUser;
+  const isOwner = currentUser && pet.userId === currentUser.uid;
+
+  const colors = statusColors[pet.status] || statusColors.perdido;
 
   const openWhatsApp = () => {
+    if (!currentUser) {
+      Alert.alert(
+        "Iniciar sesión requerido",
+        "Necesitas estar logueado para contactarte por WhatsApp.",
+        [
+          { text: "Cancelar", style: "cancel" },
+          {
+            text: "Iniciar sesión",
+            onPress: () => navigation.navigate("Login"),
+          },
+        ]
+      );
+      return;
+    }
+
     const message = `Hola, vi tu publicación sobre ${pet.name}. ¿Sigue disponible la información?`;
     const url = `https://wa.me/${pet.phone.replace(
       /\D/g,
@@ -28,32 +72,23 @@ const PetDetailScreen = ({ route }) => {
   };
 
   return (
-    <View
-      style={[
-        styles.container,
-        {
-          backgroundColor: pet.status === "perdido" ? "#F0F8FF" : "#F8F0FF",
-        },
-      ]}
-    >
-      <ScrollView showsVerticalScrollIndicator={false}>
+    <View style={[styles.container, { backgroundColor: colors.background }]}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        bounces={false}
+        overScrollMode="never"
+        contentContainerStyle={{ paddingBottom: 30 }}
+      >
         <Image source={pet.image} style={styles.image} />
 
         <Text style={styles.name}>{pet.name}</Text>
 
         <View
-          style={[
-            styles.badgeContainer,
-            {
-              backgroundColor: pet.status === "perdido" ? "#E0F0FF" : "#F2E6FF",
-            },
-          ]}
+          style={[styles.badgeContainer, { backgroundColor: colors.badge }]}
         >
-          <Text style={styles.badgeText}>
+          <Text style={[styles.badgeText, { color: colors.textColor }]}>
             {pet.type} •{" "}
-            <Text style={{ fontWeight: "bold" }}>
-              {pet.status === "perdido" ? "Perdido" : "Encontrado"}
-            </Text>
+            <Text style={{ fontWeight: "bold" }}>{colors.label}</Text>
           </Text>
         </View>
 
@@ -82,13 +117,25 @@ const PetDetailScreen = ({ route }) => {
               ? `Dueño/a: ${pet.owner}`
               : `Encontrado por: ${pet.owner}`}
           </Text>
-          <TouchableOpacity
-            style={styles.whatsappButton}
-            onPress={openWhatsApp}
-          >
-            <Ionicons name="logo-whatsapp" size={24} color="#fff" />
-            <Text style={styles.whatsappText}>Enviar mensaje por WhatsApp</Text>
-          </TouchableOpacity>
+
+          {/* Mostrar botón solo si el estado no es "resuelto" */}
+          {pet.status !== "resuelto" && (
+            <TouchableOpacity
+              style={[styles.whatsappButton, !currentUser && { opacity: 0.8 }]}
+              onPress={openWhatsApp}
+            >
+              <Ionicons
+                name={currentUser ? "logo-whatsapp" : "lock-closed-outline"}
+                size={24}
+                color="#fff"
+              />
+              <Text style={styles.whatsappText}>
+                {currentUser
+                  ? "Enviar mensaje por WhatsApp"
+                  : "Inicia sesión para contactar"}
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <View style={styles.mapContainer}>
@@ -116,6 +163,18 @@ const PetDetailScreen = ({ route }) => {
             </MapView>
           </TouchableOpacity>
         </View>
+
+        {isOwner && (
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() =>
+              navigation.navigate("AddPet", { pet, isEditing: true })
+            }
+          >
+            <Ionicons name="create-outline" size={20} color="#fff" />
+            <Text style={styles.editButtonText}>Editar publicación</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -126,7 +185,6 @@ export default PetDetailScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor: "#fff",
     padding: 20,
   },
   image: {
@@ -150,7 +208,6 @@ const styles = StyleSheet.create({
   },
   badgeText: {
     fontSize: 16,
-    color: "#333",
   },
   section: {
     marginTop: 20,
@@ -193,5 +250,21 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  editButton: {
+    backgroundColor: "#6C63FF",
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    borderRadius: 8,
+    marginTop: 20,
+    marginBottom: 30,
+  },
+  editButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    marginLeft: 8,
+    fontWeight: "600",
   },
 });
