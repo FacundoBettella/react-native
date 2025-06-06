@@ -194,7 +194,7 @@ export default function AddPetScreen({ navigation, route }) {
 
   return (
     <ScrollView
-      contentContainerStyle={styles.container}
+      contentContainerStyle={[styles.container, { backgroundColor: "#fbfaf4" }]}
       showsVerticalScrollIndicator={false}
       bounces={false}
       overScrollMode="never"
@@ -225,13 +225,17 @@ export default function AddPetScreen({ navigation, route }) {
         })}
       </View>
 
-      <Text style={styles.label}>Nombre Mascota</Text>
-      <TextInput
-        placeholder="Nombre de la mascota"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
+      {status !== "encontrado" && (
+        <>
+          <Text style={styles.label}>Nombre Mascota</Text>
+          <TextInput
+            placeholder="Nombre de la mascota"
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+          />
+        </>
+      )}
       <Text style={styles.label}>Tipo</Text>
       <SelectChips
         options={["Perro", "Gato", "Mascota"]}
@@ -275,12 +279,15 @@ export default function AddPetScreen({ navigation, route }) {
         multiline
       />
 
-      <Button title="Seleccionar imagen" onPress={pickImage} />
+      <TouchableOpacity style={styles.customButton} onPress={pickImage}>
+        <Text style={styles.buttonText}>Seleccionar imagen</Text>
+      </TouchableOpacity>
       {image && <Image source={{ uri: image }} style={styles.image} />}
-      <Button
-        title={isEditing ? "Actualizar mascota" : "Guardar mascota"}
-        onPress={handleSave}
-      />
+      <TouchableOpacity style={styles.customButton} onPress={handleSave}>
+        <Text style={styles.buttonText}>
+          {isEditing ? "Actualizar mascota" : "Guardar mascota"}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -320,5 +327,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     marginRight: 8,
     marginBottom: 8,
+  },
+  customButton: {
+    backgroundColor: "#8DA290",
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginVertical: 10,
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
   },
 });

@@ -11,6 +11,7 @@ import { useEffect, useState } from "react";
 import { useNavigation } from "@react-navigation/native";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { auth, db } from "../config/fb";
+import NotFoundImage from "../../assets/notfound.png"; 
 
 // Abstracción de colores por estado
 const statusColors = {
@@ -117,6 +118,11 @@ const MyPetsScreen = () => {
   if (pets.length === 0) {
     return (
       <View style={styles.loader}>
+        <Image
+          source={NotFoundImage}
+          style={{ width: 180, height: 180, marginBottom: 20 }}
+          resizeMode="contain"
+        />
         <Text style={{ fontSize: 16, color: "#777", marginBottom: 16 }}>
           No has publicado mascotas aún.
         </Text>
@@ -213,7 +219,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   addButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#8DA290",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 8,
