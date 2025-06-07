@@ -7,6 +7,9 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { doc, getDoc, setDoc } from "firebase/firestore";
@@ -85,22 +88,22 @@ export default function UserProfileForm() {
         email: user.email,
       });
 
-      Alert.alert(
-        "Perfil guardado",
-        "Tu perfil se ha guardado correctamente.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ]
-      );
+      Alert.alert("Perfil guardado", "Tu perfil se ha guardado correctamente.", [
+        {
+          text: "OK",
+          onPress: () => navigation.goBack(),
+        },
+      ]);
     } catch (error) {
       console.error("Error al guardar perfil:", error);
       Alert.alert("Error", "No se pudo guardar el perfil.");
     } finally {
       setLoading(false);
     }
+  };
+
+  const cancelEdit = () => {
+    navigation.goBack();
   };
 
   if (initialLoading) {
@@ -139,16 +142,35 @@ export default function UserProfileForm() {
         style={styles.input}
       />
 
-      <Button title="Seleccionar foto de perfil" onPress={pickImage} />
       {imageBase64 && (
-        <Image source={{ uri: imageBase64 }} style={styles.image} />
+        <>
+          <Image source={{ uri: imageBase64 }} style={styles.image} />
+          <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
+            <Text style={styles.imageButtonText}>Cambiar imagen de perfil</Text>
+          </TouchableOpacity>
+        </>
       )}
 
-      <Button
-        title={loading ? "Guardando..." : "Guardar perfil"}
+      {!imageBase64 && (
+        <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
+          <Text style={styles.imageButtonText}>Cargar imagen de perfil</Text>
+        </TouchableOpacity>
+      )}
+
+      <View style={styles.bottomSpacing} />
+
+      <TouchableOpacity
         onPress={saveProfile}
         disabled={loading}
-      />
+        style={[styles.saveButton, loading && { opacity: 0.6 }]}>
+        <Text style={styles.saveButtonText}>
+          {loading ? "Guardando..." : "Guardar cambios"}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity onPress={cancelEdit} style={styles.cancelButton}>
+        <Text style={styles.cancelButtonText}>Cancelar</Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -157,11 +179,14 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     alignItems: "stretch",
+    backgroundColor: "#fbfaf4",
+    flexGrow: 1,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     padding: 20,
+    backgroundColor: "#fbfaf4",
   },
   input: {
     borderWidth: 1,
@@ -169,6 +194,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
+    backgroundColor: "#fff",
   },
   image: {
     width: 150,
@@ -176,5 +202,43 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     marginTop: 12,
     alignSelf: "center",
+  },
+  imageButton: {
+    backgroundColor: "#8DA290",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
+    alignSelf: "center",
+  },
+  imageButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  saveButton: {
+    backgroundColor: "#8DA290",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 150,
+    marginBottom: 10,
+    alignItems: "center",
+    alignSelf: "center",
+    width: "60%",
+  },
+  saveButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  cancelButton: {
+    marginTop: 10,
+    marginBottom: 40,
+    alignSelf: "center",
+  },
+  cancelButtonText: {
+    color: "#8DA290",
+    fontWeight: "bold",
+  },
+  bottomSpacing: {
+    height: 60,
   },
 });

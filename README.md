@@ -49,7 +49,7 @@
 - Header: #DEE2D9
 - Botones / elementos activos: #F2CBBB // #d8693f
 - Texto: #000000 
-- Seleccionado: #8DA290
+- Especiales: #8DA290
 
 ---
 

@@ -5,6 +5,7 @@ import {
   StyleSheet,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
 } from "react-native";
 import { useEffect, useState } from "react";
 import { auth, db } from "../config/fb";
@@ -17,6 +18,24 @@ const ProfileScreen = () => {
   const navigation = useNavigation();
 
   const logout = () => auth.signOut();
+
+  const handleLogout = () => {
+    Alert.alert(
+      "Cerrar sesión",
+      "¿Estás segura/o que querés cerrar sesión?",
+      [
+        {
+          text: "No",
+          style: "cancel",
+        },
+        {
+          text: "Sí",
+          onPress: logout,
+        },
+      ],
+      { cancelable: false }
+    );
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -102,7 +121,7 @@ const ProfileScreen = () => {
       <View style={styles.logoutContainer}>
         <TouchableOpacity
           style={[styles.customButton, { backgroundColor: "#ff4d4d" }]}
-          onPress={logout}
+          onPress={handleLogout}
         >
           <Text style={styles.buttonText}>Cerrar sesión</Text>
         </TouchableOpacity>
