@@ -14,6 +14,7 @@ import UserProfileForm from "./src/screens/UserProfileFormScreen";
 import AddPetScreen from "./src/screens/AddPetScreen";
 import MyPetsScreen from "./src/screens/MyPetsScreen";
 import HomeScreen from "./src/screens/HomeScreen";
+import ReportPetScreen from "./src/screens/ReportPetScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -23,13 +24,13 @@ function ProfileStackNavigator() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: "#DEE2D9" }, 
-        headerTintColor: "#000000", 
-        contentStyle: { backgroundColor: "#FCF1D8" }, 
+        headerStyle: { backgroundColor: "#DEE2D9" },
+        headerTintColor: "#000000",
+        contentStyle: { backgroundColor: "#FCF1D8" },
       }}
     >
       <Stack.Screen
-        name="ProfileScreen"
+        name='ProfileScreen'
         component={ProfileScreen}
         options={{
           headerShown: false,
@@ -37,7 +38,7 @@ function ProfileStackNavigator() {
         }}
       />
       <Stack.Screen
-        name="EditProfile"
+        name='EditProfile'
         component={UserProfileForm}
         options={{
           headerShown: false,
@@ -55,62 +56,73 @@ function DrawerNavigator() {
   return (
     <Drawer.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: "#DEE2D9" }, 
-        headerTintColor: "#000000", 
-        drawerActiveTintColor: "#8DA290", 
-        drawerInactiveTintColor: "#000000", 
+        headerStyle: { backgroundColor: "#DEE2D9" },
+        headerTintColor: "#000000",
+        drawerActiveTintColor: "#8DA290",
+        drawerInactiveTintColor: "#000000",
         drawerStyle: {
-          backgroundColor: "#FCF1D8", 
+          backgroundColor: "#FCF1D8",
         },
         drawerLabelStyle: { fontSize: 16, color: "#000000" },
       }}
     >
       <Drawer.Screen
-        name="Inicio"
+        name='Inicio'
         component={HomeScreen}
         options={{
           drawerIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+            <Ionicons name='home-outline' size={size} color={color} />
           ),
         }}
       />
       <Drawer.Screen
-        name="Mapa"
+        name='Mapa'
         component={LocationScreen}
         options={{
           drawerIcon: ({ color, size }) => (
-            <Ionicons name="location-outline" size={size} color={color} />
+            <Ionicons name='location-outline' size={size} color={color} />
           ),
         }}
       />
       {user && (
         <Drawer.Screen
-          name="Mis Mascotas"
+          name='Mis Mascotas'
           component={MyPetsScreen}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="paw-outline" size={size} color={color} />
+              <Ionicons name='paw-outline' size={size} color={color} />
+            ),
+          }}
+        />
+      )}
+      {user && (
+        <Drawer.Screen
+          name='Reportar Hallazgo'
+          component={ReportPetScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name='camera-outline' size={size} color={color} />
             ),
           }}
         />
       )}
       {user ? (
         <Drawer.Screen
-          name="Perfil"
+          name='Perfil'
           component={ProfileStackNavigator}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="person-outline" size={size} color={color} />
+              <Ionicons name='person-outline' size={size} color={color} />
             ),
           }}
         />
       ) : (
         <Drawer.Screen
-          name="Login"
+          name='Login'
           component={LoginScreen}
           options={{
             drawerIcon: ({ color, size }) => (
-              <Ionicons name="log-in-outline" size={size} color={color} />
+              <Ionicons name='log-in-outline' size={size} color={color} />
             ),
           }}
         />
@@ -127,41 +139,41 @@ export default function App() {
         <Stack.Navigator
           screenOptions={{
             headerShown: false,
-            contentStyle: { backgroundColor: "#FCF1D8" }, 
+            contentStyle: { backgroundColor: "#FCF1D8" },
           }}
         >
-          <Stack.Screen name="Main" component={DrawerNavigator} />
+          <Stack.Screen name='Main' component={DrawerNavigator} />
           <Stack.Screen
-            name="PetDetail"
+            name='PetDetail'
             component={PetDetailScreen}
             options={{
               headerShown: true,
               title: "Detalle de mascota",
-              headerStyle: { backgroundColor: "#DEE2D9" }, 
-              headerTintColor: "#000000", 
-              contentStyle: { backgroundColor: "#FCF1D8" }, 
+              headerStyle: { backgroundColor: "#DEE2D9" },
+              headerTintColor: "#000000",
+              contentStyle: { backgroundColor: "#FCF1D8" },
             }}
           />
           <Stack.Screen
-            name="AddPet"
+            name='AddPet'
             component={AddPetScreen}
             options={{
               headerShown: true,
               title: "Agregar o editar mascota",
-              headerStyle: { backgroundColor: "#DEE2D9" }, 
-              headerTintColor: "#000000", 
-              contentStyle: { backgroundColor: "#FCF1D8" }, 
+              headerStyle: { backgroundColor: "#DEE2D9" },
+              headerTintColor: "#000000",
+              contentStyle: { backgroundColor: "#FCF1D8" },
             }}
           />
           <Stack.Screen
-            name="Login"
+            name='Login'
             component={LoginScreen}
             options={{
               headerShown: true,
               title: "Iniciar sesión",
-              headerStyle: { backgroundColor: "#DEE2D9" }, 
-              headerTintColor: "#000000", 
-              contentStyle: { backgroundColor: "#FCF1D8" }, 
+              headerStyle: { backgroundColor: "#DEE2D9" },
+              headerTintColor: "#000000",
+              contentStyle: { backgroundColor: "#FCF1D8" },
             }}
           />
         </Stack.Navigator>
