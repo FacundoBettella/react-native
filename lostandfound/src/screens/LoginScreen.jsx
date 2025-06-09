@@ -7,25 +7,27 @@ import {
   View,
   Alert,
 } from "react-native";
-import { useState, useContext } from "react";
-import { auth } from "../config/fb";
-import { signInWithEmailAndPassword } from "firebase/auth";
+import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { AuthContext } from "../../AuthProvider";
+import { loginUser } from "../store/thunks/authThunks";
+import { useDispatch } from "react-redux";
 
 const LoginScreen = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { setUser } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const signIn = async () => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(auth, email, password);
-      setUser(userCredential.user);
-      navigation.navigate("Main");
-    } catch (error) {
-      alert("Error al iniciar sesión: " + error.message);
+    const result = await dispatch(loginUser(email, password));
+
+    if (result.success) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" }],
+      });
+    } else {
+      alert("Error al iniciar sesión: " + result?.error?.message);
     }
   };
 
@@ -54,12 +56,22 @@ const LoginScreen = () => {
         <Text style={styles.buttonText}>Iniciar Sesión</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={() => Alert.alert("Recuperación de contraseña", "Funcionalidad no implementada aún.")}> 
+      <TouchableOpacity
+        onPress={() =>
+          Alert.alert(
+            "Recuperación de contraseña",
+            "Funcionalidad no implementada aún."
+          )
+        }
+      >
         <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
 
       <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate("NewAccountScreen")}> 
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => navigation.navigate("NewAccountScreen")}
+        >
           <Text style={styles.buttonText}>Crear Cuenta</Text>
         </TouchableOpacity>
       </View>

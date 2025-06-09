@@ -8,22 +8,21 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { useState, useContext, useEffect } from "react";
-import { auth } from "../config/fb";
-import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { useState, useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { AuthContext } from "../../AuthProvider";
+import { registerUserManual } from "../store/thunks/authThunks";
+import { useDispatch } from "react-redux";
 
 const NewAccountScreen = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { setUser } = useContext(AuthContext);
 
-  const [name, setName] = useState("");
-  const [surname, setSurname] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
+  const [name, setName] = useState("test");
+  const [surname, setSurname] = useState("test");
+  const [phone, setPhone] = useState("123456");
+  const [email, setEmail] = useState("test1@hotmail.com");
+  const [password, setPassword] = useState("123456");
+  const [repeatPassword, setRepeatPassword] = useState("123456");
 
   const [isValid, setIsValid] = useState(false);
   const [showRepeatError, setShowRepeatError] = useState(false);
@@ -47,20 +46,22 @@ const NewAccountScreen = () => {
   }, [name, surname, email, password, repeatPassword]);
 
   const handleSignUp = async () => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const result = await dispatch(
+      registerUserManual({
+        email,
+        password,
+        name,
+        surname,
+        phone,
+      })
+    );
 
-      await updateProfile(userCredential.user, {
-        displayName: `${name} ${surname}`,
-        phoneNumber: phone,
-      });
-
-      setUser(userCredential.user);
+    if (result.success) {
       Alert.alert("Cuenta creada con éxito", "Ahora puedes iniciar sesión", [
-        { text: "OK", onPress: () => navigation.navigate("Login") },
+        { text: "OK", onPress: () => navigation.navigate("Main") },
       ]);
-    } catch (error) {
-      Alert.alert("Error", error.message);
+    } else {
+      Alert.alert("Error", result.error);
     }
   };
 
@@ -137,7 +138,9 @@ const NewAccountScreen = () => {
         />
 
         {showRepeatError && (
-          <Text style={styles.errorText}>La contraseña ingresada no coincide.</Text>
+          <Text style={styles.errorText}>
+            La contraseña ingresada no coincide.
+          </Text>
         )}
 
         <View style={{ flex: 1 }} />

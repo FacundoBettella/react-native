@@ -7,71 +7,31 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { collection, getDocs, query, where } from "firebase/firestore";
-import { auth, db } from "../config/fb";
-import NotFoundImage from "../../assets/notfound.png"; 
-
-// Abstracción de colores por estado
-const statusColors = {
-  perdido: {
-    background: "#E6F0FF",
-    border: "#007FFF",
-    text: "#007FFF",
-    label: "Perdido",
-  },
-  encontrado: {
-    background: "#F0E6FF",
-    border: "#A040FB",
-    text: "#A040FB",
-    label: "Encontrado",
-  },
-  resuelto: {
-    background: "#E6FFE6",
-    border: "#32A852",
-    text: "#32A852",
-    label: "Resuelto",
-  },
-};
+import { useSelector, useDispatch } from "react-redux";
+import { fetchMyPets } from "../store/thunks/petsThunks";
+import NotFoundImage from "../../assets/notfound.png";
+import { statusColors } from "../utils/statusColors";
 
 const MyPetsScreen = () => {
   const navigation = useNavigation();
-  const [pets, setPets] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [canAddPet, setCanAddPet] = useState(false);
-  const currentUser = auth.currentUser;
+  const dispatch = useDispatch();
+
+  const {
+    list: pets,
+    loading,
+    error,
+    canAddPet,
+    loadedInitially,
+  } = useSelector((state) => state.pets);
 
   useEffect(() => {
-    const fetchMyPets = async () => {
-      if (!currentUser?.uid) return;
-
-      try {
-        const q = query(
-          collection(db, "pets"),
-          where("userId", "==", currentUser.uid)
-        );
-        const snapshot = await getDocs(q);
-        const myPets = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-        setPets(myPets);
-
-        // Verificar cuántas mascotas activas tiene el usuario
-        const activePets = myPets.filter(
-          (pet) => pet.status === "perdido" || pet.status === "encontrado"
-        );
-        setCanAddPet(activePets.length < 2);
-      } catch (error) {
-        console.error("Error al cargar tus mascotas:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMyPets();
-  }, [currentUser]);
+    if (!loadedInitially) {
+      console.log("obtener mascotas de Firestore");
+      dispatch(fetchMyPets());
+    }
+  }, [loadedInitially]);
 
   const renderItem = ({ item }) => {
     const colors = statusColors[item.status] || {
@@ -110,6 +70,17 @@ const MyPetsScreen = () => {
         <ActivityIndicator size="large" color="#007AFF" />
         <Text style={{ marginTop: 10, fontSize: 16, color: "#555" }}>
           Cargando tus publicaciones...
+        </Text>
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.loader}>
+        <Text style={{ color: "red", fontSize: 16 }}>Error: {error}</Text>
+        <Text style={{ marginTop: 10, fontSize: 14, color: "#777" }}>
+          Por favor, intenta de nuevo más tarde.
         </Text>
       </View>
     );

@@ -1,9 +1,10 @@
+// App.js
 import { NavigationContainer } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
-import { useContext } from "react";
-import { AuthContext, AuthProvider } from "./AuthProvider";
+import { Provider, useSelector } from "react-redux";
+import { store } from "./src/store";
 import { CartProvider } from "./src/hooks/CartContext";
 
 // Screens
@@ -36,60 +37,64 @@ function ProfileStackNavigator() {
       <Stack.Screen
         name="ProfileScreen"
         component={ProfileScreen}
-        options={{
-          headerShown: false,
-          title: "Mi Perfil",
-        }}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name="EditProfile"
         component={UserProfileForm}
-        options={{
-          headerShown: false,
-          title: "Editar Perfil",
-        }}
+        options={{ headerShown: false }}
       />
     </Stack.Navigator>
   );
 }
 
-// DRAWER PRINCIPAL
+// DRAWER PRINCIPAL CON VISIBILIDAD CONDICIONAL
 function DrawerNavigator() {
-  const { user } = useContext(AuthContext);
+  const { authUser } = useSelector((state) => state.auth);
 
   return (
-    <CartProvider>
-      <Drawer.Navigator
-        screenOptions={{
-          headerStyle: { backgroundColor: "#DEE2D9" },
-          headerTintColor: "#000000",
-          drawerActiveTintColor: "#8DA290",
-          drawerInactiveTintColor: "#000000",
-          drawerStyle: {
-            backgroundColor: "#FCF1D8",
-          },
-          drawerLabelStyle: { fontSize: 16, color: "#000000" },
+    <Drawer.Navigator
+      screenOptions={{
+        headerStyle: { backgroundColor: "#DEE2D9" },
+        headerTintColor: "#000000",
+        drawerActiveTintColor: "#8DA290",
+        drawerInactiveTintColor: "#000000",
+        drawerStyle: { backgroundColor: "#FCF1D8" },
+        drawerLabelStyle: { fontSize: 16, color: "#000000" },
+      }}
+    >
+      {/* Siempre visibles */}
+      <Drawer.Screen
+        name="Inicio"
+        component={HomeScreen}
+        options={{
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="home-outline" size={size} color={color} />
+          ),
         }}
-      >
-        <Drawer.Screen
-          name="Inicio"
-          component={HomeScreen}
-          options={{
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="home-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        <Drawer.Screen
-          name="Mapa"
-          component={LocationScreen}
-          options={{
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="location-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        {user && (
+      />
+      <Drawer.Screen
+        name="Mapa"
+        component={LocationScreen}
+        options={{
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="location-outline" size={size} color={color} />
+          ),
+        }}
+      />
+      <Drawer.Screen
+        name="PetShop Cercanos"
+        component={LocationPetShopsScreen}
+        options={{
+          drawerIcon: ({ color, size }) => (
+            <Ionicons name="location-outline" size={size} color={color} />
+          ),
+        }}
+      />
+
+      {/* Solo si está logueado */}
+      {authUser && (
+        <>
           <Drawer.Screen
             name="Mis Mascotas"
             component={MyPetsScreen}
@@ -99,8 +104,6 @@ function DrawerNavigator() {
               ),
             }}
           />
-        )}
-        {user && (
           <Drawer.Screen
             name="PetShop Online"
             component={PetShopScreen}
@@ -110,17 +113,6 @@ function DrawerNavigator() {
               ),
             }}
           />
-        )}
-        <Drawer.Screen
-          name="PetShop Cercanos"
-          component={LocationPetShopsScreen}
-          options={{
-            drawerIcon: ({ color, size }) => (
-              <Ionicons name="location-outline" size={size} color={color} />
-            ),
-          }}
-        />
-        {user ? (
           <Drawer.Screen
             name="Perfil"
             component={ProfileStackNavigator}
@@ -130,27 +122,30 @@ function DrawerNavigator() {
               ),
             }}
           />
-        ) : (
-          <Drawer.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{
-              drawerIcon: ({ color, size }) => (
-                <Ionicons name="log-in-outline" size={size} color={color} />
-              ),
-            }}
-          />
-        )}
-      </Drawer.Navigator>
-    </CartProvider>
+        </>
+      )}
+
+      {/* Solo si NO está logueado */}
+      {!authUser && (
+        <Drawer.Screen
+          name="Login"
+          component={LoginScreen}
+          options={{
+            drawerIcon: ({ color, size }) => (
+              <Ionicons name="log-in-outline" size={size} color={color} />
+            ),
+          }}
+        />
+      )}
+    </Drawer.Navigator>
   );
 }
 
 // APP ROOT
 export default function App() {
   return (
-    <CartProvider>
-      <AuthProvider>
+    <Provider store={store}>
+      <CartProvider>
         <NavigationContainer>
           <Stack.Navigator
             screenOptions={{
@@ -167,7 +162,6 @@ export default function App() {
                 title: "Detalle de mascota",
                 headerStyle: { backgroundColor: "#DEE2D9" },
                 headerTintColor: "#000000",
-                contentStyle: { backgroundColor: "#FCF1D8" },
               }}
             />
             <Stack.Screen
@@ -178,7 +172,6 @@ export default function App() {
                 title: "Agregar o editar mascota",
                 headerStyle: { backgroundColor: "#DEE2D9" },
                 headerTintColor: "#000000",
-                contentStyle: { backgroundColor: "#FCF1D8" },
               }}
             />
             <Stack.Screen
@@ -189,7 +182,6 @@ export default function App() {
                 title: "Iniciar sesión",
                 headerStyle: { backgroundColor: "#DEE2D9" },
                 headerTintColor: "#000000",
-                contentStyle: { backgroundColor: "#FCF1D8" },
               }}
             />
             <Stack.Screen
@@ -200,7 +192,6 @@ export default function App() {
                 title: "Nuevo Usuario",
                 headerStyle: { backgroundColor: "#DEE2D9" },
                 headerTintColor: "#000000",
-                contentStyle: { backgroundColor: "#FCF1D8" },
               }}
             />
             <Stack.Screen
@@ -208,15 +199,14 @@ export default function App() {
               component={CartScreen}
               options={{
                 headerShown: true,
-                title: "Cart",
+                title: "Carrito",
                 headerStyle: { backgroundColor: "#DEE2D9" },
                 headerTintColor: "#000000",
-                contentStyle: { backgroundColor: "#FCF1D8" },
               }}
             />
           </Stack.Navigator>
         </NavigationContainer>
-      </AuthProvider>
-    </CartProvider>
+      </CartProvider>
+    </Provider>
   );
 }
