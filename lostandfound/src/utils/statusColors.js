@@ -37,3 +37,24 @@ export const STATUS_COLORS = {
     border: "#E6FFE6",
   },
 };
+
+export const statusColorsD = {
+  perdido: {
+    background: "#F0F8FF",
+    badge: "#E0F0FF",
+    textColor: "#003366",
+    label: "Perdido",
+  },
+  encontrado: {
+    background: "#F8F0FF",
+    badge: "#F2E6FF",
+    textColor: "#4B0082",
+    label: "Encontrado",
+  },
+  resuelto: {
+    background: "#F2FFF0",
+    badge: "#E0FFE6",
+    textColor: "#006600",
+    label: "Resuelto",
+  },
+};

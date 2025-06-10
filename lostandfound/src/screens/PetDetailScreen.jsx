@@ -10,40 +10,20 @@ import {
 } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { Ionicons } from "@expo/vector-icons";
-import { auth } from "../config/fb";
 import { useNavigation } from "@react-navigation/native";
-
-const statusColors = {
-  perdido: {
-    background: "#F0F8FF",
-    badge: "#E0F0FF",
-    textColor: "#003366",
-    label: "Perdido",
-  },
-  encontrado: {
-    background: "#F8F0FF",
-    badge: "#F2E6FF",
-    textColor: "#4B0082",
-    label: "Encontrado",
-  },
-  resuelto: {
-    background: "#F2FFF0",
-    badge: "#E0FFE6",
-    textColor: "#006600",
-    label: "Resuelto",
-  },
-};
+import { useSelector } from "react-redux";
+import { statusColorsD } from "../utils/statusColors";
 
 const PetDetailScreen = ({ route }) => {
+  const { authUser } = useSelector((state) => state.auth);
   const navigation = useNavigation();
   const { pet } = route.params;
-  const currentUser = auth.currentUser;
-  const isOwner = currentUser && pet.userId === currentUser.uid;
+  const isOwner = authUser && pet.userId === authUser.uid;
 
-  const colors = statusColors[pet.status] || statusColors.perdido;
+  const colors = statusColorsD[pet.status] || statusColorsD.perdido;
 
   const openWhatsApp = () => {
-    if (!currentUser) {
+    if (!authUser) {
       Alert.alert(
         "Iniciar sesión requerido",
         "Necesitas estar logueado para contactarte por WhatsApp.",
@@ -119,18 +99,18 @@ const PetDetailScreen = ({ route }) => {
           </Text>
 
           {/* Mostrar botón solo si el estado no es "resuelto" */}
-          {pet.status !== "resuelto" && (
+          {pet.status !== "resuelto" && pet.userId != authUser.uid && (
             <TouchableOpacity
-              style={[styles.whatsappButton, !currentUser && { opacity: 0.8 }]}
+              style={[styles.whatsappButton, !authUser && { opacity: 0.8 }]}
               onPress={openWhatsApp}
             >
               <Ionicons
-                name={currentUser ? "logo-whatsapp" : "lock-closed-outline"}
+                name={authUser ? "logo-whatsapp" : "lock-closed-outline"}
                 size={24}
                 color="#fff"
               />
               <Text style={styles.whatsappText}>
-                {currentUser
+                {authUser
                   ? "Enviar mensaje por WhatsApp"
                   : "Inicia sesión para contactar"}
               </Text>
