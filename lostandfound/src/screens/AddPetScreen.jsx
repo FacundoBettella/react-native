@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import {
   View,
   TextInput,
-  Button,
   StyleSheet,
   ScrollView,
   Alert,
@@ -17,6 +16,7 @@ import { STATUS_COLORS } from "../utils/statusColors";
 import { savePet } from "../store/thunks/petsThunks";
 import { resetSaveStatus } from "../store/slices/petsSlice";
 import { serverTimestamp } from "firebase/firestore";
+import MapView, { Marker } from "react-native-maps";
 
 const SelectChips = ({ options, value, onChange }) => (
   <View style={styles.statusContainer}>
@@ -64,8 +64,6 @@ export default function AddPetScreen({ navigation, route }) {
   const [location, setLocation] = useState({ latitude: null, longitude: null });
 
   useEffect(() => {
-    console.log("isEditing: ", isEditing);
-    console.log("existingPet: ", existingPet);
     if (isEditing && existingPet) {
       setName(existingPet.name || "");
       setType(existingPet.type || "");
@@ -78,8 +76,8 @@ export default function AddPetScreen({ navigation, route }) {
       setRetained(existingPet.retained || false);
       setImage(existingPet.image?.uri || null);
       setLocation({
-        latitude: existingPet.latitude || 0,
-        longitude: existingPet.longitude || 0,
+        latitude: existingPet.latitude || null,
+        longitude: existingPet.longitude || null,
       });
     }
   }, [isEditing, existingPet]);
@@ -127,16 +125,7 @@ export default function AddPetScreen({ navigation, route }) {
       return;
     }
 
-    const requiredFields = [
-      // name,
-      type,
-      // breed,
-      gender,
-      age,
-      // address,
-      // description,
-      image,
-    ];
+    const requiredFields = [type, gender, age, image];
     if (
       requiredFields.some(
         (f) => !f || (typeof f === "string" && f.trim() === "")
@@ -149,9 +138,17 @@ export default function AddPetScreen({ navigation, route }) {
       return;
     }
 
+    if (!location.latitude || !location.longitude) {
+      Alert.alert(
+        "Ubicación requerida",
+        "Por favor seleccioná un punto en el mapa."
+      );
+      return;
+    }
+
     const petData = {
-      latitude: location.latitude || 0,
-      longitude: location.longitude || 0,
+      latitude: location.latitude,
+      longitude: location.longitude,
       name,
       type,
       breed,
@@ -218,12 +215,14 @@ export default function AddPetScreen({ navigation, route }) {
           />
         </>
       )}
+
       <Text style={styles.label}>Tipo</Text>
       <SelectChips
         options={["Perro", "Gato", "Mascota"]}
         value={type}
         onChange={setType}
       />
+
       <Text style={styles.label}>Raza</Text>
       <TextInput
         placeholder="Raza"
@@ -245,6 +244,7 @@ export default function AddPetScreen({ navigation, route }) {
         value={age}
         onChange={setAge}
       />
+
       <Text style={styles.label}>Dirección</Text>
       <TextInput
         placeholder="Dirección"
@@ -252,6 +252,7 @@ export default function AddPetScreen({ navigation, route }) {
         onChangeText={setAddress}
         style={styles.input}
       />
+
       <Text style={styles.label}>Descripción</Text>
       <TextInput
         placeholder="Descripción"
@@ -261,9 +262,34 @@ export default function AddPetScreen({ navigation, route }) {
         multiline
       />
 
+      <Text style={styles.label}>Ubicación</Text>
+      <Text style={{ marginBottom: 8, color: "#555" }}>
+        Tocá en el mapa para seleccionar la ubicación
+      </Text>
+      <View style={styles.mapContainer}>
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: location.latitude || -34.610841,
+            longitude: location.longitude || -58.563036,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+          onPress={(e) => {
+            const { latitude, longitude } = e.nativeEvent.coordinate;
+            setLocation({ latitude, longitude });
+          }}
+        >
+          {location.latitude && location.longitude && (
+            <Marker coordinate={location} />
+          )}
+        </MapView>
+      </View>
+
       <TouchableOpacity style={styles.customButton} onPress={pickImage}>
         <Text style={styles.buttonText}>Seleccionar imagen</Text>
       </TouchableOpacity>
+
       {image && <Image source={{ uri: image }} style={styles.image} />}
 
       <TouchableOpacity
@@ -335,5 +361,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+  },
+  mapContainer: {
+    height: 200,
+    borderRadius: 12,
+    overflow: "hidden",
+    marginBottom: 16,
+  },
+  map: {
+    flex: 1,
   },
 });

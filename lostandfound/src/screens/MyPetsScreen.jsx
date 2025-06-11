@@ -28,7 +28,6 @@ const MyPetsScreen = () => {
 
   useEffect(() => {
     if (!loadedInitially) {
-      console.log("obtener mascotas de Firestore");
       dispatch(fetchMyPets());
     }
   }, [loadedInitially]);

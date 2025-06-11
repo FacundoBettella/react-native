@@ -166,7 +166,7 @@ const LocationScreen = () => {
         ]}
         onPress={() => {
           setFilterStatus(value);
-          setOnlyMyPets(false); 
+          setOnlyMyPets(false);
         }}
       >
         <MaterialIcons
