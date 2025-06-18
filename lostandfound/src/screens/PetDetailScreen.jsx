@@ -97,9 +97,7 @@ const PetDetailScreen = ({ route }) => {
               ? `Dueño/a: ${pet.owner}`
               : `Encontrado por: ${pet.owner}`}
           </Text>
-
-          {/* Mostrar botón solo si el estado no es "resuelto" */}
-          {pet.status !== "resuelto" && pet.userId != authUser.uid && (
+          {pet.status !== "resuelto" && !isOwner && (
             <TouchableOpacity
               style={[styles.whatsappButton, !authUser && { opacity: 0.8 }]}
               onPress={openWhatsApp}
