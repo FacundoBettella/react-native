@@ -65,6 +65,7 @@ const LocationScreen = () => {
   const mapRef = useRef(null);
   const navigation = useNavigation();
   const calloutAnim = useRef(new Animated.Value(0)).current;
+  const [showTooltip, setShowTooltip] = useState(true);
 
   useEffect(() => {
     const fetchPets = async () => {
@@ -129,6 +130,13 @@ const LocationScreen = () => {
       }
     };
     fetchLocation();
+
+    // Ocultar tooltip después de 3 segundos
+    const timer = setTimeout(() => {
+      setShowTooltip(false);
+    }, 3000);
+
+    return () => clearTimeout(timer);
   }, [latitude, longitude]);
 
   useEffect(() => {
@@ -225,6 +233,21 @@ const LocationScreen = () => {
         </Text>
       </TouchableOpacity>
     );
+  };
+
+  // FUNCIÓN PARA CENTRAR EL MAPA EN LA UBICACIÓN ACTUAL
+  const goToCurrentLocation = () => {
+    if (mapRef.current && latitude && longitude) {
+      mapRef.current.animateToRegion(
+        {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude),
+          latitudeDelta: 0.04,
+          longitudeDelta: 0.04,
+        },
+        1000
+      );
+    }
   };
 
   return (
@@ -360,6 +383,25 @@ const LocationScreen = () => {
               </TouchableOpacity>
             </Animated.View>
           )}
+
+          {/* BOTÓN PARA UBICACIÓN ACTUAL */}
+          <View style={styles.myLocationContainer}>
+            <TouchableOpacity
+              style={styles.myLocationButton}
+              onPress={goToCurrentLocation}
+            >
+              <MaterialIcons name="my-location" size={28} color="#fff" />
+            </TouchableOpacity>
+
+            {/* TOOLTIP que aparece junto al botón */}
+            {showTooltip && (
+              <View style={styles.tooltip}>
+                <Text style={styles.tooltipText}>
+                  Selecciona para volver a tu ubicación
+                </Text>
+              </View>
+            )}
+          </View>
         </>
       )}
     </View>
@@ -435,5 +477,40 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     borderWidth: 1.5,
     marginRight: 8,
+  },
+
+  myLocationContainer: {
+    position: "absolute",
+    bottom: 30,
+    right: 20,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+
+  myLocationButton: {
+    backgroundColor: "#8DA290",
+    borderRadius: 30,
+    width: 56,
+    height: 56,
+    alignItems: "center",
+    justifyContent: "center",
+    elevation: 5,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+  },
+
+  tooltip: {
+    marginLeft: 10,
+    backgroundColor: "rgba(0,0,0,0.75)",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    maxWidth: 180,
+  },
+  tooltipText: {
+    color: "#fff",
+    fontSize: 13,
   },
 });
