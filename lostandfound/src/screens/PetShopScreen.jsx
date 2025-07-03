@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -6,8 +6,10 @@ import {
   FlatList,
   Image,
   TouchableOpacity,
+  Modal,
+  Pressable,
 } from "react-native";
-import { useNavigation } from "@react-navigation/native";
+import { useNavigation, useFocusEffect, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { useCart } from "../hooks/CartContext";
 
@@ -52,7 +54,24 @@ const products = [
 
 const PetShopScreen = () => {
   const navigation = useNavigation();
-  const { cart, addToCart, getTotalItems } = useCart();
+  const route = useRoute();
+  const { cart, addToCart, getTotalItems, clearCart } = useCart();
+
+  const [showThanksModal, setShowThanksModal] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (route.params?.showThanksModal) {
+        setShowThanksModal(true);
+      }
+    }, [route.params])
+  );
+
+  const closeThanksModal = () => {
+    setShowThanksModal(false);
+    clearCart();
+    navigation.setParams({ showThanksModal: false });
+  };
 
   const renderItem = ({ item }) => {
     const quantity = cart[item.id]?.quantity || 0;
@@ -61,9 +80,7 @@ const PetShopScreen = () => {
         <Image source={item.image} style={styles.image} resizeMode="contain" />
         <Text style={styles.name}>{item.name}</Text>
         <Text style={styles.price}>${item.price}</Text>
-        {quantity > 0 && (
-          <Text style={styles.counter}>Cantidad: {quantity}</Text>
-        )}
+        {quantity > 0 && <Text style={styles.counter}>Cantidad: {quantity}</Text>}
         <TouchableOpacity style={styles.button} onPress={() => addToCart(item)}>
           <Text style={styles.buttonText}>Agregar</Text>
         </TouchableOpacity>
@@ -74,6 +91,7 @@ const PetShopScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>PetShop</Text>
+
       <FlatList
         data={products}
         renderItem={renderItem}
@@ -81,6 +99,7 @@ const PetShopScreen = () => {
         numColumns={2}
         contentContainerStyle={styles.list}
       />
+
       <TouchableOpacity
         style={styles.cartIcon}
         onPress={() => navigation.navigate("Cart")}
@@ -92,6 +111,26 @@ const PetShopScreen = () => {
           </View>
         )}
       </TouchableOpacity>
+
+      {/* Modal personalizado */}
+      <Modal
+        visible={showThanksModal}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={closeThanksModal}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContainer}>
+            <Text style={styles.modalTitle}>Gracias por su compra</Text>
+            <Text style={styles.modalMessage}>
+              En unos momentos recibirá un mail con los datos del envío.
+            </Text>
+            <Pressable style={styles.modalButton} onPress={closeThanksModal}>
+              <Text style={styles.modalButtonText}>Cerrar</Text>
+            </Pressable>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -179,6 +218,47 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 10,
     fontWeight: "bold",
+  },
+  modalBackground: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)", // fondo negro semitransparente
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    marginHorizontal: 30,
+    padding: 24,
+    borderRadius: 12,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 5,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 12,
+    color: "#333",
+  },
+  modalMessage: {
+    fontSize: 16,
+    color: "#555",
+    textAlign: "center",
+    marginBottom: 20,
+  },
+  modalButton: {
+    backgroundColor: "#8DA290",
+    paddingVertical: 10,
+    paddingHorizontal: 32,
+    borderRadius: 8,
+  },
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "700",
+    fontSize: 16,
   },
 });
 

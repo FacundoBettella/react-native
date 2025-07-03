@@ -1,3 +1,4 @@
+import React, { useState } from "react";
 import {
   Text,
   StyleSheet,
@@ -6,11 +7,11 @@ import {
   SafeAreaView,
   View,
   Alert,
+  Image,
 } from "react-native";
-import { useState } from "react";
 import { useNavigation } from "@react-navigation/native";
-import { loginUser } from "../store/thunks/authThunks";
 import { useDispatch } from "react-redux";
+import { loginUser } from "../store/thunks/authThunks";
 
 const LoginScreen = () => {
   const dispatch = useDispatch();
@@ -33,7 +34,14 @@ const LoginScreen = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Iniciar Sesión</Text>
+      <View style={styles.logoTitleContainer}>
+        <Image
+          source={require("../../assets/adaptive-icon.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Iniciar Sesión</Text>
+      </View>
 
       <TextInput
         style={styles.textInput}
@@ -86,12 +94,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fbfaf4",
     alignItems: "center",
-    justifyContent: "center",
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+  },
+  logoTitleContainer: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  logo: {
+    width: 120,
+    height: 120,
   },
   title: {
     fontSize: 28,
     fontWeight: "800",
-    marginBottom: 30,
+    marginTop: 10,
     color: "#000",
   },
   textInput: {

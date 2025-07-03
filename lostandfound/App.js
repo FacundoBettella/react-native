@@ -20,6 +20,8 @@ import HomeScreen from "./src/screens/HomeScreen";
 import PetShopScreen from "./src/screens/PetShopScreen";
 import LocationPetShopsScreen from "./src/screens/LocationPetShopsScreen";
 import CartScreen from "./src/screens/CartScreen";
+import ContinueShopping from "./src/screens/ContinueShopping";
+import MercadoPagoScreen from "./src/screens/MercadoPagoScreen";
 
 const Drawer = createDrawerNavigator();
 const Stack = createNativeStackNavigator();
@@ -204,6 +206,48 @@ export default function App() {
                 headerTintColor: "#000000",
               }}
             />
+            <Stack.Screen
+              name="ContinueShopping"
+              component={ContinueShopping}
+              options={{
+                headerShown: true,
+                title: "Continuar compra",
+                headerStyle: { backgroundColor: "#DEE2D9" },
+                headerTintColor: "#000000",
+              }}
+            />
+            <Stack.Screen
+              name="MercadoPagoScreen"
+              component={MercadoPagoScreen}
+              options={{
+                headerShown: true,
+                title: "Mercado Pago",
+                headerStyle: { backgroundColor: "#009EE3" },
+                headerTintColor: "#FFFFFF",
+              }}
+            />
+            {/* <Stack.Screen
+              name="PetShop Online"
+              component={PetShopScreen}
+              options={({ navigation }) => ({
+                headerShown: true,
+                title: "PetShop Online",
+                headerStyle: { backgroundColor: "#DEE2D9" },
+                headerTintColor: "#000000",
+                headerLeft: () => (
+                  <Ionicons
+                    name="menu"
+                    size={28}
+                    color="#000"
+                    style={{ marginLeft: 15 }}
+                    onPress={() => navigation.toggleDrawer()}
+                  />
+                ),
+                drawerIcon: ({ color, size }) => (
+                  <Ionicons name="cart" size={size} color={color} />
+                ),
+              })}
+            /> */}
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>

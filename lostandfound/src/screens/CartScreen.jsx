@@ -7,9 +7,11 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from "react-native";
+import { useNavigation } from "@react-navigation/native"; 
 import { useCart } from "../hooks/CartContext";
 
 const CartScreen = () => {
+  const navigation = useNavigation(); 
   const { cart, clearCart } = useCart();
 
   const cartItems = Object.values(cart).filter((item) => item.quantity > 0);
@@ -46,7 +48,10 @@ const CartScreen = () => {
           <TouchableOpacity style={styles.button} onPress={() => clearCart()}>
             <Text style={styles.buttonText}>Vaciar carrito</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={[styles.button, { backgroundColor: "#4CAF50" }]}>
+          <TouchableOpacity
+            style={[styles.button, { backgroundColor: "#4CAF50" }]}
+            onPress={() => navigation.navigate("ContinueShopping")} 
+          >
             <Text style={styles.buttonText}>Continuar compra</Text>
           </TouchableOpacity>
         </>
