@@ -7,8 +7,12 @@ import {
   Image,
 } from "react-native";
 import logoImage from "../../assets/adaptive-icon.png";
+import { useSelector } from "react-redux";
 
 const HomeScreen = ({ navigation }) => {
+  const { profile } = useSelector((state) => state.auth);
+  const userName = profile?.name;
+
   return (
     <ScrollView
       contentContainerStyle={styles.container}
@@ -18,22 +22,69 @@ const HomeScreen = ({ navigation }) => {
     >
       <View style={styles.header}>
         <Image source={logoImage} style={styles.logo} />
-        <Text style={styles.headerText}>Bienvenido a Lost & Found</Text>
+        <Text style={styles.headerText}>
+          {userName ? `🐾 Hola ${userName}! 🐾` : "Bienvenido a Lost & Found"}
+        </Text>
       </View>
 
-      <View style={styles.infoSection}>
-        <Text style={styles.infoTitle}>¿Qué es Lost & Found?</Text>
-        <Text style={styles.infoDescription}>
-          Somos una comunidad que conecta mascotas perdidas con sus dueños, sin
-          importar dónde estén. Los dueños reportan animales extraviados y
-          quienes encuentran uno pueden avisar a la comunidad, ayudando a que
-          vuelvan a casa. Creemos en la colaboración para cuidar a nuestros
-          amigos peludos.
-        </Text>
-        <Text style={styles.infoDescription}>
-          En el mapa encontrarás indicadores de mascotas perdidas y encontradas.
-          Podrás subir fotos y añadir detalles para facilitar el reencuentro.
-        </Text>
+      {/* Fondo con color pastel celeste en vez de imagen */}
+      <View style={styles.backgroundColorContainer}>
+        <View style={styles.bubbleContainer}>
+          {/* FILA 1 */}
+          <View style={styles.row}>
+            <View style={styles.bubble}>
+              <Image
+                source={require("../../assets/pet-lost.png")}
+                style={styles.bubbleImage}
+              />
+              <Text style={styles.bubbleTitle}>
+                ¿Perdiste o encontraste una mascota? 🐶🐱
+              </Text>
+            </View>
+            <View style={styles.textBox}>
+              <Text style={styles.bubbleDescription}>
+                Reportá mascotas perdidas o avisá si encontraste una.
+                ¡Ayudá a que vuelvan a casa!
+              </Text>
+            </View>
+          </View>
+
+          {/* FILA 2 (invertida) */}
+          <View style={styles.row}>
+            <View style={styles.textBox}>
+              <Text style={styles.bubbleDescription}>
+                En el mapa vas a ver ubicaciones con reportes activos.
+                Podés agregar fotos y detalles.
+              </Text>
+            </View>
+            <View style={styles.bubble}>
+              <Image
+                source={require("../../assets/mapa-icono.png")}
+                style={styles.bubbleImage}
+              />
+              <Text style={styles.bubbleTitle}>
+                Usá el mapa para reportar o buscar 📍
+              </Text>
+            </View>
+          </View>
+
+          {/* FILA 3 */}
+          <View style={styles.row}>
+            <View style={styles.bubble}>
+              <Image
+                source={require("../../assets/comunidad.png")}
+                style={styles.bubbleImage}
+              />
+              <Text style={styles.bubbleTitle}>Somos una comunidad que ayuda ❤️</Text>
+            </View>
+            <View style={styles.textBox}>
+              <Text style={styles.bubbleDescription}>
+                Miles de personas colaboran para reunir mascotas con sus familias.
+                ¡Sumate!
+              </Text>
+            </View>
+          </View>
+        </View>
       </View>
 
       <TouchableOpacity
@@ -54,13 +105,13 @@ const styles = StyleSheet.create({
     paddingBottom: 30,
   },
   header: {
-    paddingVertical: 40,
+    paddingVertical: 25,
     alignItems: "center",
     backgroundColor: "#faf9f3",
     width: "100%",
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
-    marginBottom: 20,
+    marginBottom: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
@@ -68,47 +119,69 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   logo: {
-    width: 100,
-    height: 100,
+    width: 80,
+    height: 80,
     resizeMode: "contain",
-    marginBottom: 10,
+    marginBottom: 5,
   },
   headerText: {
-    fontSize: 28,
+    fontSize: 24,
     fontWeight: "bold",
     color: "#333",
-    marginTop: 10,
     textAlign: "center",
   },
-  infoSection: {
-    backgroundColor: "#fff",
-    borderRadius: 15,
-    padding: 20,
-    marginHorizontal: 15,
-    marginBottom: 20,
+  backgroundColorContainer: {
     width: "90%",
+    borderRadius: 20,
+    padding: 15,
+    marginBottom: 20,
+    backgroundColor: "rgb(187, 211, 218)", 
+  },
+  bubbleContainer: {
+    gap: 20,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    gap: 10,
+  },
+  bubble: {
+    backgroundColor: "#ffffffcc",
+    padding: 12,
+    borderRadius: 12,
+    alignItems: "center",
+    width: 130,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 2,
-    elevation: 3,
+    elevation: 2,
   },
-  infoTitle: {
-    fontSize: 22,
+  bubbleImage: {
+    width: 50,
+    height: 50,
+    resizeMode: "contain",
+    marginBottom: 6,
+  },
+  bubbleTitle: {
+    fontSize: 13,
     fontWeight: "bold",
-    color: "#D96C3F", 
-    marginBottom: 15,
+    color: "#333",
     textAlign: "center",
   },
-  infoDescription: {
-    fontSize: 16,
-    color: "#666",
-    lineHeight: 24,
-    textAlign: "center",
-    marginBottom: 10,
+  textBox: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  bubbleDescription: {
+    fontSize: 14,
+    color: "#000000", 
+    lineHeight: 20,
+    textAlign: "left",
   },
   exploreButton: {
-    backgroundColor: "#d8693f", 
+    backgroundColor: "#d8693f",
     paddingVertical: 15,
     paddingHorizontal: 30,
     borderRadius: 30,

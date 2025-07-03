@@ -226,28 +226,6 @@ export default function App() {
                 headerTintColor: "#FFFFFF",
               }}
             />
-            {/* <Stack.Screen
-              name="PetShop Online"
-              component={PetShopScreen}
-              options={({ navigation }) => ({
-                headerShown: true,
-                title: "PetShop Online",
-                headerStyle: { backgroundColor: "#DEE2D9" },
-                headerTintColor: "#000000",
-                headerLeft: () => (
-                  <Ionicons
-                    name="menu"
-                    size={28}
-                    color="#000"
-                    style={{ marginLeft: 15 }}
-                    onPress={() => navigation.toggleDrawer()}
-                  />
-                ),
-                drawerIcon: ({ color, size }) => (
-                  <Ionicons name="cart" size={size} color={color} />
-                ),
-              })}
-            /> */}
           </Stack.Navigator>
         </NavigationContainer>
       </CartProvider>
