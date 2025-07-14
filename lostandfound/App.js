@@ -1,11 +1,12 @@
 // App.js
-import { NavigationContainer } from "@react-navigation/native";
+import { NavigationContainer, useNavigation, useNavigationState } from "@react-navigation/native";
 import { createDrawerNavigator } from "@react-navigation/drawer";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { Ionicons } from "@expo/vector-icons";
 import { Provider, useSelector } from "react-redux";
 import { store } from "./src/store";
 import { CartProvider } from "./src/hooks/CartContext";
+import { Image, TouchableOpacity } from "react-native";
 
 // Screens
 import LocationScreen from "./src/screens/LocationScreen";
@@ -52,7 +53,19 @@ function ProfileStackNavigator() {
 
 // DRAWER PRINCIPAL CON VISIBILIDAD CONDICIONAL
 function DrawerNavigator() {
-  const { authUser } = useSelector((state) => state.auth);
+  const { authUser, profile } = useSelector((state) => state.auth);
+  const navigation = useNavigation();
+  const currentRoute = useNavigationState((state) => {
+    const route = state.routes[state.index];
+
+    // si estamos dentro de un stack, mirar su subruta activa
+    if (route.state?.routes) {
+      const nested = route.state.routes[route.state.index];
+      return nested.name;
+    }
+
+    return route.name;
+  });
 
   return (
     <Drawer.Navigator
@@ -63,6 +76,23 @@ function DrawerNavigator() {
         drawerInactiveTintColor: "#000000",
         drawerStyle: { backgroundColor: "#FCF1D8" },
         drawerLabelStyle: { fontSize: 16, color: "#000000" },
+        // 👉 Ocultar imagen en ProfileScreen o EditProfile
+        headerRight: () =>
+          authUser &&
+          profile?.photoBase64 &&
+          currentRoute !== "ProfileScreen" &&
+          currentRoute !== "Perfil" &&
+          currentRoute !== "EditProfile" ? (
+            <TouchableOpacity
+              onPress={() => navigation.navigate("Perfil")}
+              style={{ marginRight: 10 }}
+            >
+              <Image
+                source={{ uri: profile.photoBase64 }}
+                style={{ width: 35, height: 35, borderRadius: 17.5 }}
+              />
+            </TouchableOpacity>
+          ) : null,
       }}
     >
       {/* Siempre visibles */}
@@ -84,7 +114,7 @@ function DrawerNavigator() {
           ),
         }}
       />
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="PetShop Cercanos"
         component={LocationPetShopsScreen}
         options={{
@@ -92,7 +122,7 @@ function DrawerNavigator() {
             <Ionicons name="location-outline" size={size} color={color} />
           ),
         }}
-      />
+      /> */}
 
       {/* Solo si está logueado */}
       {authUser && (
