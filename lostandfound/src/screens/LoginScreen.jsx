@@ -1,77 +1,88 @@
+import React, { useState } from "react";
 import {
   Text,
   StyleSheet,
   TextInput,
   TouchableOpacity,
   SafeAreaView,
+  View,
+  Alert,
+  Image,
 } from "react-native";
-import { useState } from "react";
-import { auth } from "../config/fb";
-import {
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from "firebase/auth";
-
 import { useNavigation } from "@react-navigation/native";
-import { useContext } from "react";
-import { AuthContext } from "../../AuthProvider";
+import { useDispatch } from "react-redux";
+import { loginUser } from "../store/thunks/authThunks";
 
 const LoginScreen = () => {
+  const dispatch = useDispatch();
   const navigation = useNavigation();
-  const { setUser } = useContext(AuthContext);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const signIn = async () => {
-    try {
-      const userCredential = await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      setUser(userCredential.user);
-      navigation.navigate("Main");
-    } catch (error) {
-      alert("Sign in failed: " + error.message);
-    }
-  };
+    const result = await dispatch(loginUser(email, password));
 
-  const signUp = async () => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(
-        auth,
-        email,
-        password
-      );
-      setUser(userCredential.user);
-      navigation.navigate("Main"); // o a otra screen si deseas
-    } catch (error) {
-      alert("Sign up failed: " + error.message);
+    if (result.success) {
+      navigation.reset({
+        index: 0,
+        routes: [{ name: "Main" }],
+      });
+    } else {
+      alert("Error al iniciar sesión: " + result?.error?.message);
     }
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <Text style={styles.title}>Login</Text>
+      <View style={styles.logoTitleContainer}>
+        <Image
+          source={require("../../assets/adaptive-icon.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+        <Text style={styles.title}>Iniciar Sesión</Text>
+      </View>
+
       <TextInput
         style={styles.textInput}
-        placeholder="email"
+        placeholder="Email"
         value={email}
         onChangeText={setEmail}
+        placeholderTextColor="#999"
       />
+
       <TextInput
         style={styles.textInput}
-        placeholder="password"
+        placeholder="Contraseña"
         value={password}
         onChangeText={setPassword}
         secureTextEntry
+        placeholderTextColor="#999"
       />
-      <TouchableOpacity style={styles.button} onPress={signIn}>
-        <Text style={styles.text}>Iniciar Sesion</Text>
+
+      <TouchableOpacity style={styles.loginButton} onPress={signIn}>
+        <Text style={styles.buttonText}>Iniciar Sesión</Text>
       </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={signUp}>
-        <Text style={styles.text}>Crear Cuenta</Text>
+
+      <TouchableOpacity
+        onPress={() =>
+          Alert.alert(
+            "Recuperación de contraseña",
+            "Funcionalidad no implementada aún."
+          )
+        }
+      >
+        <Text style={styles.linkText}>¿Olvidaste tu contraseña?</Text>
       </TouchableOpacity>
+
+      <View style={styles.bottomButtonContainer}>
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => navigation.navigate("NewAccountScreen")}
+        >
+          <Text style={styles.buttonText}>Crear Cuenta</Text>
+        </TouchableOpacity>
+      </View>
     </SafeAreaView>
   );
 };
@@ -81,50 +92,62 @@ export default LoginScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: "center",
+    backgroundColor: "#fbfaf4",
     alignItems: "center",
-    backgroundColor: "#FAFAFA",
+    justifyContent: "flex-start",
+    paddingHorizontal: 20,
+    paddingTop: 50,
+  },
+  logoTitleContainer: {
+    alignItems: "center",
+    marginBottom: 30,
+  },
+  logo: {
+    width: 120,
+    height: 120,
   },
   title: {
     fontSize: 28,
     fontWeight: "800",
-    marginBottom: 40,
-    color: "#1A237E",
+    marginTop: 10,
+    color: "#000",
   },
   textInput: {
     height: 50,
-    width: "90%",
-    backgroundColor: "#FFFFFF",
-    borderColor: "#E8EAF6",
+    width: "85%",
+    backgroundColor: "#fff",
+    borderColor: "#DEE2D9",
     borderWidth: 2,
-    borderRadius: 15,
-    marginVertical: 15,
-    paddingHorizontal: 25,
+    borderRadius: 12,
+    marginBottom: 15,
+    paddingHorizontal: 20,
     fontSize: 16,
-    color: "#3C4858",
-    shadowColor: "#9E9E9E",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    color: "#000",
   },
-  button: {
-    width: "90%",
-    marginVertical: 15,
-    backgroundColor: "#5C6BC0",
-    padding: 20,
-    borderRadius: 15,
+  loginButton: {
+    width: "85%",
+    backgroundColor: "#F2CBBB",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
     alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#5C6BC0",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 5,
-    elevation: 5,
+    marginTop: 10,
   },
-  text: {
-    color: "#FFFFFF",
-    fontSize: 18,
+  buttonText: {
+    color: "#000",
+    fontSize: 16,
     fontWeight: "600",
+  },
+  linkText: {
+    marginTop: 12,
+    color: "#8DA290",
+    fontSize: 14,
+    textDecorationLine: "underline",
+  },
+  bottomButtonContainer: {
+    position: "absolute",
+    bottom: 30,
+    width: "100%",
+    alignItems: "center",
   },
 });

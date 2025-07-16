@@ -3,61 +3,54 @@ import {
   Text,
   Image,
   StyleSheet,
-  ActivityIndicator,
   TouchableOpacity,
+  Alert,
+  ActivityIndicator,
 } from "react-native";
-import { useEffect, useState } from "react";
-import { auth, db } from "../config/fb";
-import { doc, getDoc } from "firebase/firestore";
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { logoutUser } from "../store/thunks/authThunks";
+import { clearPets } from "../store/slices/petsSlice";
 
 const ProfileScreen = () => {
-  const [userData, setUserData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const navigation = useNavigation();
+  const dispatch = useDispatch();
 
-  const logout = () => auth.signOut();
+  const { authUser, profile } = useSelector((state) => state.auth);
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (!currentUser) return;
+  const logout = () => {
+    dispatch(logoutUser());
+    dispatch(clearPets());
+  };
 
-        const baseData = {
-          name: "",
-          surname: "",
-          phone: "",
-          address: "",
-          photoBase64: "",
-          email: currentUser.email || "",
-        };
+  const handleLogout = () => {
+    Alert.alert(
+      "Cerrar sesión",
+      "¿Estás segura/o que querés cerrar sesión?",
+      [
+        { text: "No", style: "cancel" },
+        { text: "Sí", onPress: logout },
+      ],
+      { cancelable: false }
+    );
+  };
 
-        const docRef = doc(db, "users", currentUser.uid);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-          setUserData({ ...baseData, ...docSnap.data() });
-        } else {
-          setUserData(baseData);
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  if (loading) {
+  if (!authUser) {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
   }
+
+  const userData = {
+    name: profile?.name || "",
+    surname: profile?.surname || "",
+    phone: profile?.phone || "",
+    address: profile?.address || "",
+    photoBase64: profile?.photoBase64 || null,
+    email: authUser?.email || "",
+  };
 
   return (
     <View style={styles.container}>
@@ -91,18 +84,18 @@ const ProfileScreen = () => {
           <Text style={styles.buttonText}>Editar perfil</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
+        {/* <TouchableOpacity
           style={[styles.customButton, { backgroundColor: "#8DA290" }]}
           onPress={() => navigation.navigate("Subscription")}
         >
           <Text style={styles.buttonText}>Suscripción</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <View style={styles.logoutContainer}>
         <TouchableOpacity
           style={[styles.customButton, { backgroundColor: "#ff4d4d" }]}
-          onPress={logout}
+          onPress={handleLogout}
         >
           <Text style={styles.buttonText}>Cerrar sesión</Text>
         </TouchableOpacity>

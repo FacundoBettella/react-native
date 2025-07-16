@@ -1,20 +1,24 @@
 import { useState, useEffect } from "react";
 import {
   TextInput,
-  Button,
   Image,
   StyleSheet,
   ScrollView,
   Alert,
   ActivityIndicator,
+  View,
+  Text,
+  TouchableOpacity,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { doc, getDoc, setDoc } from "firebase/firestore";
-import { auth, db } from "../config/fb";
 import { useNavigation } from "@react-navigation/native";
+import { useDispatch, useSelector } from "react-redux";
+import { updateUserProfile } from "../store/thunks/authThunks";
 
 export default function UserProfileForm() {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const { profile } = useSelector((state) => state.auth);
 
   const [name, setName] = useState("");
   const [surname, setSurname] = useState("");
@@ -25,31 +29,15 @@ export default function UserProfileForm() {
   const [initialLoading, setInitialLoading] = useState(true);
 
   useEffect(() => {
-    const loadUserProfile = async () => {
-      try {
-        const user = auth.currentUser;
-        if (!user) return;
-
-        const profileRef = doc(db, "users", user.uid);
-        const docSnap = await getDoc(profileRef);
-
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setName(data.name || "");
-          setSurname(data.surname || "");
-          setPhone(data.phone || "");
-          setAddress(data.address || "");
-          setImageBase64(data.photoBase64 || null);
-        }
-      } catch (error) {
-        console.error("Error al cargar perfil:", error);
-      } finally {
-        setInitialLoading(false);
-      }
-    };
-
-    loadUserProfile();
-  }, []);
+    if (profile) {
+      setName(profile.name || "");
+      setSurname(profile.surname || "");
+      setPhone(profile.phone || "");
+      setAddress(profile.address || "");
+      setImageBase64(profile.photoBase64 || null);
+    }
+    setInitialLoading(false);
+  }, [profile]);
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -65,43 +53,32 @@ export default function UserProfileForm() {
   };
 
   const saveProfile = async () => {
-    try {
-      setLoading(true);
-      const user = auth.currentUser;
+    setLoading(true);
 
-      if (!user) {
-        Alert.alert("Error", "No hay un usuario autenticado.");
-        return;
-      }
-
-      const profileRef = doc(db, "users", user.uid);
-
-      await setDoc(profileRef, {
+    const result = await dispatch(
+      updateUserProfile({
         name,
         surname,
         phone,
         address,
         photoBase64: imageBase64 || null,
-        email: user.email,
-      });
+      })
+    );
 
+    setLoading(false);
+
+    if (result.success) {
       Alert.alert(
         "Perfil guardado",
         "Tu perfil se ha guardado correctamente.",
-        [
-          {
-            text: "OK",
-            onPress: () => navigation.goBack(),
-          },
-        ]
+        [{ text: "OK", onPress: () => navigation.goBack() }]
       );
-    } catch (error) {
-      console.error("Error al guardar perfil:", error);
+    } else {
       Alert.alert("Error", "No se pudo guardar el perfil.");
-    } finally {
-      setLoading(false);
     }
   };
+
+  const cancelEdit = () => navigation.goBack();
 
   if (initialLoading) {
     return (
@@ -112,7 +89,12 @@ export default function UserProfileForm() {
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+      bounces={false}
+      overScrollMode="never"
+    >
       <TextInput
         placeholder="Nombre"
         value={name}
@@ -139,16 +121,32 @@ export default function UserProfileForm() {
         style={styles.input}
       />
 
-      <Button title="Seleccionar foto de perfil" onPress={pickImage} />
-      {imageBase64 && (
-        <Image source={{ uri: imageBase64 }} style={styles.image} />
+      {imageBase64 ? (
+        <>
+          <Image source={{ uri: imageBase64 }} style={styles.image} />
+          <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
+            <Text style={styles.imageButtonText}>Cambiar imagen de perfil</Text>
+          </TouchableOpacity>
+        </>
+      ) : (
+        <TouchableOpacity onPress={pickImage} style={styles.imageButton}>
+          <Text style={styles.imageButtonText}>Cargar imagen de perfil</Text>
+        </TouchableOpacity>
       )}
 
-      <Button
-        title={loading ? "Guardando..." : "Guardar perfil"}
+      <TouchableOpacity onPress={cancelEdit} style={styles.cancelButton}>
+        <Text style={styles.cancelButtonText}>Cancelar</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
         onPress={saveProfile}
         disabled={loading}
-      />
+        style={[styles.saveButton, loading && { opacity: 0.6 }]}
+      >
+        <Text style={styles.saveButtonText}>
+          {loading ? "Guardando..." : "Guardar cambios"}
+        </Text>
+      </TouchableOpacity>
     </ScrollView>
   );
 }
@@ -157,11 +155,15 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     alignItems: "stretch",
+    backgroundColor: "#fbfaf4",
+    flexGrow: 1,
+    paddingBottom: 30,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     padding: 20,
+    backgroundColor: "#fbfaf4",
   },
   input: {
     borderWidth: 1,
@@ -169,6 +171,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     marginBottom: 12,
+    backgroundColor: "#fff",
   },
   image: {
     width: 150,
@@ -176,5 +179,39 @@ const styles = StyleSheet.create({
     borderRadius: 75,
     marginTop: 12,
     alignSelf: "center",
+  },
+  imageButton: {
+    backgroundColor: "#8DA290",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 10,
+    alignSelf: "center",
+  },
+  imageButtonText: {
+    color: "white",
+    fontWeight: "bold",
+  },
+  saveButton: {
+    backgroundColor: "#8DA290",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 20,
+    marginBottom: 10,
+    alignItems: "center",
+    alignSelf: "center",
+    width: "60%",
+  },
+  saveButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 14,
+  },
+  cancelButton: {
+    marginTop: 150,
+    alignSelf: "center",
+  },
+  cancelButtonText: {
+    color: "#8DA290",
+    fontWeight: "bold",
   },
 });
