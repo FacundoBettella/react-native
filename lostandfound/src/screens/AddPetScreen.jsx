@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef  } from "react";
 import {
   View,
   TextInput,
@@ -63,6 +63,16 @@ export default function AddPetScreen({ navigation, route }) {
   const [image, setImage] = useState(null);
   const [location, setLocation] = useState({ latitude: null, longitude: null });
 
+  // ✅ Al entrar a la pantalla, reseteamos el estado de guardado
+  useEffect(() => {
+    const unsubscribe = navigation.addListener("focus", () => {
+      dispatch(resetSaveStatus());
+    });
+
+    return unsubscribe;
+  }, [navigation]);
+
+  // ✅ Al editar, rellenamos los campos
   useEffect(() => {
     if (isEditing && existingPet) {
       setName(existingPet.name || "");
@@ -82,30 +92,48 @@ export default function AddPetScreen({ navigation, route }) {
     }
   }, [isEditing, existingPet]);
 
-  useEffect(() => {
-    if (saveSuccess) {
-      dispatch(resetSaveStatus());
-      Alert.alert(
-        "Éxito",
-        isEditing
-          ? "Mascota actualizada correctamente."
-          : "Mascota registrada correctamente.",
-        [
-          {
-            text: "OK",
-            onPress: () =>
-              navigation.navigate("Main", {
-                screen: "Mis Mascotas",
-              }),
+
+const alertShownRef = useRef(false);
+
+useEffect(() => {
+  if (saveSuccess && !alertShownRef.current) {
+    alertShownRef.current = true;
+
+    Alert.alert(
+      "Éxito",
+      isEditing
+        ? "Mascota actualizada correctamente."
+        : "Mascota registrada correctamente.",
+      [
+        {
+          text: "OK",
+          onPress: () => {
+            dispatch(resetSaveStatus());
+            alertShownRef.current = false; // lo liberamos después del navigate
+            navigation.navigate("Main", {
+              screen: "Mis Mascotas",
+            });
           },
-        ]
-      );
-    }
-    if (saveError) {
-      Alert.alert("Error", "No se pudo guardar la mascota: " + saveError);
-      dispatch(resetSaveStatus());
-    }
-  }, [saveSuccess, saveError, isEditing]);
+        },
+      ]
+    );
+  }
+
+  if (saveError && !alertShownRef.current) {
+    alertShownRef.current = true;
+
+    Alert.alert("Error", "No se pudo guardar la mascota: " + saveError, [
+      {
+        text: "OK",
+        onPress: () => {
+          dispatch(resetSaveStatus());
+          alertShownRef.current = false;
+        },
+      },
+    ]);
+  }
+}, [saveSuccess, saveError, isEditing]);
+
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
