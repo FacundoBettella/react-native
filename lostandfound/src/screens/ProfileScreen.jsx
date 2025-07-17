@@ -19,8 +19,8 @@ const ProfileScreen = () => {
   const { authUser, profile } = useSelector((state) => state.auth);
 
   const logout = () => {
-    dispatch(logoutUser());
     dispatch(clearPets());
+    dispatch(logoutUser());
   };
 
   const handleLogout = () => {

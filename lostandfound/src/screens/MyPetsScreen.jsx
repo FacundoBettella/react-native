@@ -23,14 +23,18 @@ const MyPetsScreen = () => {
     loading,
     error,
     canAddPet,
-    loadedInitially,
+    // loadedInitially,
   } = useSelector((state) => state.pets);
 
+  const { authUser } = useSelector((state) => state.auth);
+
   useEffect(() => {
-    if (!loadedInitially) {
+    // if (!loadedInitially) {
+    if (authUser) {
+      console.log("entrando authUser", authUser);
       dispatch(fetchMyPets());
     }
-  }, [loadedInitially]);
+  }, [authUser]);
 
   const renderItem = ({ item }) => {
     const colors = statusColors[item.status] || {
