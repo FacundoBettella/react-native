@@ -12,7 +12,9 @@ import {
 } from "react-native";
 import useLocation from "../hooks/useLocation";
 import { useEffect, useRef, useState } from "react";
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
+import MapView, { Marker, 
+  // PROVIDER_GOOGLE 
+} from "react-native-maps";
 import { useNavigation } from "@react-navigation/native";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { auth, db } from "../config/fb";
@@ -262,7 +264,7 @@ const LocationScreen = () => {
       ) : (
         <>
           <MapView
-            provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
+            // provider={Platform.OS === "android" ? PROVIDER_GOOGLE : undefined}
             ref={mapRef}
             style={styles.map}
             initialRegion={{

@@ -25,6 +25,11 @@ export default {
         backgroundColor: "#ffffff",
       },
       edgeToEdgeEnabled: true,
+      package: "com.yamila27.lostandfound",
+      permissions: [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ]
     },
     web: {
       favicon: "./assets/favicon.png",
@@ -36,6 +41,9 @@ export default {
       storageBucket: process.env.STORAGE_BUCKET,
       messagingSenderId: process.env.MESSAGING_SENDER_ID,
       appId: process.env.APP_ID,
+      eas: {
+        projectId: "e073c086-8dc0-417a-8b06-ca64eff1d48b"
+      }
     },
     plugins: [
       [

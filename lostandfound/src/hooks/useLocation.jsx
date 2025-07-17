@@ -1,21 +1,24 @@
-import { requestForegroundPermissionsAsync, getCurrentPositionAsync } from "expo-location";
+import * as Location from "expo-location";
 import { useState } from "react";
 
 const useLocation = () => {
   const [errorMsg, setErrorMsg] = useState("");
-  const [longitude, setLongitude] = useState("");
-  const [latitude, setLatitude] = useState("");
+  const [longitude, setLongitude] = useState(null);
+  const [latitude, setLatitude] = useState(null);
 
   const getUserLocation = async () => {
     try {
-      const { status } = await requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
 
       if (status !== "granted") {
         setErrorMsg("Permiso a la ubicación fue RECHAZADO");
         return false;
       }
 
-      const location = await getCurrentPositionAsync({});
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.High,
+      });
+
       const { latitude, longitude } = location.coords;
 
       setLatitude(latitude);
