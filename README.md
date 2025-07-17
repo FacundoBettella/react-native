@@ -59,3 +59,7 @@
 2. npm i
 3. npx expo start
 4. Utilizo el simulador Pixel 5, Android 14, Google Apis
+
+## 🛠️ Creación APK
+1. comando "eas login", loguear user expo
+2. comando "eas build -p android --profile preview". Una vez que termina el build, muestra QR y url link final.
